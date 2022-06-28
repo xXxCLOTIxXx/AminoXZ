@@ -1,6 +1,7 @@
+![AminoXZ](https://user-images.githubusercontent.com/88231084/176066432-6c9015b4-f683-42ed-a471-1f8c9b477ca1.png)
 
 
-#[AminoXZ](https://user-images.githubusercontent.com/88231084/176066291-401b91b9-dc6f-499d-97c4-0a16050f99af.png)
+
 
 # AminoXZ!
 
