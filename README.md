@@ -1,9 +1,7 @@
- ![AminoXZ](https://user-images.githubusercontent.com/88231084/176066432-6c9015b4-f683-42ed-a471-1f8c9b477ca1.png)
-
 
 <h1 align="center">
   <br>
-  <a href="https://github.com/Slimakoi/Amino.py"><img src="https://user-images.githubusercontent.com/88231084/176066432-6c9015b4-f683-42ed-a471-1f8c9b477ca1.png" alt="AminoXZ" width="200"></a>
+  <a href="https://github.com/xXxCLOTIxXx/AminoXZ"><img src="https://user-images.githubusercontent.com/88231084/176066432-6c9015b4-f683-42ed-a471-1f8c9b477ca1.png" alt="AminoXZ" width="200"></a>
   <br>
   AminoXZ
   <br>
