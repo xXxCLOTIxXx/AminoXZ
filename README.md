@@ -1,4 +1,8 @@
-# AminoXZ
+
+
+
+# AminoXZ![AminoXZ](https://user-images.githubusercontent.com/88231084/176066291-401b91b9-dc6f-499d-97c4-0a16050f99af.png)
+
 
 # Join our discord server https://discord.gg/GtpUnsHHT4 !
 
