@@ -21,4 +21,4 @@ Installation Methods:
 
 1) Download from GitHub and save it somewhere in a folder
 
-2) Install via pip (pip install AminoXZ) - Not working yet
+2) Install via pip (pip install AminoXZ)
