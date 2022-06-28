@@ -3,6 +3,7 @@ import json
 from .lib.util import generator as gen
 from .lib.util import exceptions, helpers
 import requests
+from typing import BinaryIO
 
 """
 	Made by Xsarz (@DXsarz)
@@ -58,6 +59,28 @@ class Client():
 			"referer": referer
 		}
 		return headers
+
+	def upload_media(self, file: BinaryIO, fileType: str):
+		"""
+		Not tested
+
+		Upload file to the amino servers
+
+		** options **
+
+		- *file* : upload file
+		- *fileType*: type of file
+		"""
+		if fileType == "audio":t = "audio/aac"
+		elif fileType == "image":t = "image/jpg"
+		else: raise exceptions.SpecifyType(fileType)
+		data = file.read()
+		response = self.session.post(f"{self.api}/g/s/media/upload", data=data, headers=headers(data=data))
+		if response.status_code != 200: return exceptions.checkExceptions(json.loads(response.text))
+		else:return json.loads(response.text)["mediaValue"]
+
+
+
 
 
 	def login_phone(number: str, password: str):
@@ -146,7 +169,6 @@ class Client():
 		"clientType": 100,
 		"timestamp": int(timestamp() * 1000)
 		})
-		if self.logged == False: return exceptions.checkExceptionsLocal('0')
 		response = self.session.post(f"{self.api}/g/s/auth/logout", headers=self.headers(data=data), data=data)
 		if response.status_code != 200:return exceptions.CheckException(json.loads(response.text))
 		else:
@@ -207,7 +229,6 @@ class Client():
 
 		"""
 
-		if self.logged == False: return exceptions.checkExceptionsLocal('1')
 		response = self.session.get(f"{self.api}/g/s/account", headers=self.headers())
 		if response.status_code != 200: return exceptions.checkExceptions(json.loads(response.text))
 		else: information_from_the_server = json.loads(response.text)["account"]
@@ -241,7 +262,6 @@ class Client():
 
 
 		"""
-		if self.logged == False: return exceptions.checkExceptionsLocal('1')
 		if comId!=None:
 			response = self.session.get(f"{self.api}/x{comId}/s/chat/thread?type=joined-me&start={start}&size={size}", headers=self.headers())
 			if response.status_code != 200: return exceptions.checkExceptions(json.loads(response.text))
@@ -264,7 +284,6 @@ class Client():
 		- *size* : The size of the list.
 
 		"""
-		if self.logged == False: return exceptions.checkExceptionsLocal('1')
 		response = self.session.get(f"{self.api}/g/s/community/joined?v=1&start={start}&size={size}", headers=self.headers())
 		if response.status_code != 200: return exceptions.checkExceptions(json.loads(response.text))
 		else: return json.loads(response.text)["communityList"]
@@ -281,7 +300,6 @@ class Client():
 
 		"""
 
-		if self.logged == False: return exceptions.checkExceptionsLocal('1')
 		data = json.dumps({"timestamp": int(timestamp() * 1000)})
 		response = self.session.post(f"{self.api}/x{comId}/s/community/join", headers=self.headers(data=data), data=data)
 		if response.status_code != 200: return exceptions.checkExceptions(json.loads(response.text))
@@ -397,7 +415,6 @@ class Client():
 		elif type == "featured": response = self.session.get(f"{self.api}/x{comId}/s/user-profile?type=featured&start={start}&size={size}", headers=self.headers())
 		elif type == "leaders": response = self.session.get(f"{self.api}/x{comId}/s/user-profile?type=leaders&start={start}&size={size}", headers=self.headers())
 		elif type == "curators": response = self.session.get(f"{self.api}/x{comId}/s/user-profile?type=curators&start={start}&size={size}", headers=self.headers())
-		else: return exceptions.checkExceptionsLocal("2")
 		if response.status_code != 200: return exceptions.checkExceptions(json.loads(response.text))
 		else: return json.loads(response.text)
 
@@ -462,22 +479,72 @@ class Client():
 		else: return response.status_code
 
 
+	def change_global_profile(self, name: str = None, content: str = None, icon: BinaryIO = None, backgroundColor: str = None, backgroundImage: str = None, bubbleId: str = None):
+
+		"""
+		change global account's profile
+
+		** options **
+		- *name* : Profile name
+		- *content* : Bio of the Profile.
+		- *icon* : Profile icon
+		- *backgroundImage* : Url of the background picture
+		- *backgroundColor* : Hexadecimal background color
+		- *bubbleId* : Bubble ID.
+
+		"""
+		data = {
+			"address": None,
+			"latitude": 0,
+			"longitude": 0,
+			"mediaList": None,
+			"eventSource": "UserProfileView",
+			"timestamp": int(timestamp() * 1000)
+		}
+
+		if name!=None: data["nickname"] = name
+		if icon!=None: data["icon"] = self.upload_media(icon, "image")
+		if content!=None: data["content"] = content
+		if backgroundColor!=None: data["extensions"] = {"style": {"backgroundColor": backgroundColor}}
+		if backgroundImage!=None: data["extensions"] = {"style": {"backgroundMediaList": [[100, backgroundImage, None, None, None]]}}
+		if bubbleId!=None: data["extensions"] = {"defaultBubbleId": bubbleId}
+
+		data = json.dumps(data)
+		response = self.session.post(f"{self.api}/g/s/user-profile/{self.uid}", headers=self.headers(data=data), data=data)
+		if response.status_code != 200: return exceptions.checkExceptions(json.loads(response.text))
+		else:return response.status_code
 
 
+	def change_profile(self, comId: str, name: str = None, content: str = None):
 
+		"""
+		change account's in community profile
 
+		** options **
+
+		- *name* : Profile name
+		- *content* : Bio of the Profile.
+		"""
+
+		data = {"timestamp": int(timestamp() * 1000)}
+		if name!=None: data["nickname"] = name
+		if content!=None: data["content"] = content
+		data = json.dumps(data)
+		response = self.session.post(f"{self.api}/x{comId}/s/user-profile/{self.uid}", headers=self.headers(data=data), data=data)
+		if response.status_code != 200: return exceptions.checkExceptions(json.loads(response.text))
+		else:return response.status_code
 
 
 
 	"""
 
 
-														░██╗░░░░░░░██╗███████╗██████╗░      ███████╗██╗░░░██╗███╗░░██╗░█████╗░████████╗██╗░█████╗░███╗░░██╗░██████╗
-														░██║░░██╗░░██║██╔════╝██╔══██╗      ██╔════╝██║░░░██║████╗░██║██╔══██╗╚══██╔══╝██║██╔══██╗████╗░██║██╔════╝
-														░╚██╗████╗██╔╝█████╗░░██████╦╝      █████╗░░██║░░░██║██╔██╗██║██║░░╚═╝░░░██║░░░██║██║░░██║██╔██╗██║╚█████╗░
-														░░████╔═████║░██╔══╝░░██╔══██╗      ██╔══╝░░██║░░░██║██║╚████║██║░░██╗░░░██║░░░██║██║░░██║██║╚████║░╚═══██╗
-														░░╚██╔╝░╚██╔╝░███████╗██████╦╝      ██║░░░░░╚██████╔╝██║░╚███║╚█████╔╝░░░██║░░░██║╚█████╔╝██║░╚███║██████╔╝
-														░░░╚═╝░░░╚═╝░░╚══════╝╚═════╝░      ╚═╝░░░░░░╚═════╝░╚═╝░░╚══╝░╚════╝░░░░╚═╝░░░╚═╝░╚════╝░╚═╝░░╚══╝╚═════╝░
+										░██╗░░░░░░░██╗███████╗██████╗░      ███████╗██╗░░░██╗███╗░░██╗░█████╗░████████╗██╗░█████╗░███╗░░██╗░██████╗
+										░██║░░██╗░░██║██╔════╝██╔══██╗      ██╔════╝██║░░░██║████╗░██║██╔══██╗╚══██╔══╝██║██╔══██╗████╗░██║██╔════╝
+										░╚██╗████╗██╔╝█████╗░░██████╦╝      █████╗░░██║░░░██║██╔██╗██║██║░░╚═╝░░░██║░░░██║██║░░██║██╔██╗██║╚█████╗░
+										░░████╔═████║░██╔══╝░░██╔══██╗      ██╔══╝░░██║░░░██║██║╚████║██║░░██╗░░░██║░░░██║██║░░██║██║╚████║░╚═══██╗
+										░░╚██╔╝░╚██╔╝░███████╗██████╦╝      ██║░░░░░╚██████╔╝██║░╚███║╚█████╔╝░░░██║░░░██║╚█████╔╝██║░╚███║██████╔╝
+										░░░╚═╝░░░╚═╝░░╚══════╝╚═════╝░      ╚═╝░░░░░░╚═════╝░╚═╝░░╚══╝░╚════╝░░░░╚═╝░░░╚═╝░╚════╝░╚═╝░░╚══╝╚═════╝░
 
 
 	"""
@@ -513,7 +580,6 @@ class Client():
 				"clientRefId": 0
 			}
 		}
-		if self.logged == False: return exceptions.checkExceptionsLocal('1')
 		data = json.dumps(data)
 		response = self.session.post(f"https://aminoapps.com/api/add-chat-message",headers=self.web_headers(referer=f"https://aminoapps.com/partial/main-chat-window?ndcId={comId}"),data=data)
 		if response.status_code != 200: return exceptions.checkExceptions(json.loads(response.text))
@@ -540,7 +606,6 @@ class Client():
 			"ndcId": f"x{comId}",
 			"threadId": chatId
 		}
-		if self.logged == False: return exceptions.checkExceptionsLocal('1')
 		data = json.dumps(data)
 		response = self.session.post(f"https://aminoapps.com/api/join-thread", headers=self.web_headers(referer=f"https://aminoapps.com/partial/main-chat-window?ndcId={comId}"), data=data)
 		if response.status_code != 200: return exceptions.checkExceptions(json.loads(response.text))
@@ -565,7 +630,6 @@ class Client():
 			"ndcId": f"x{comId}",
 			"threadId": chatId
 		}
-		if self.logged == False: return exceptions.checkExceptionsLocal('1')
 		data = json.dumps(data)
 		response = self.session.post(f"https://aminoapps.com/api/leave-thread", headers=self.web_headers(referer=f"https://aminoapps.com/partial/main-chat-window?ndcId={comId}"), data=data)
 		if response.status_code != 200: return exceptions.checkExceptions(json.loads(response.text))
@@ -616,7 +680,6 @@ class Client():
 				"timestamp": int(timestamp() * 1000)
 			}
 		if comId!=None:
-			if self.logged == False: return exceptions.checkExceptionsLocal('1')
 			data = json.dumps(data)
 			if replyTo != None: data["replyMessageId"] = replyTo
 			response = self.session.post(f"{self.api}/x{comId}/s/chat/thread/{chatId}/message", headers=self.headers(data=data))
