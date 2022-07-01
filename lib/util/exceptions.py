@@ -157,6 +157,7 @@ def checkExceptions(data):
 	elif code == 215: raise EmailAlreadyTaken(data) and UnsupportedEmail(data)
 	elif code == 216: raise AccountDoesntExist(data)
 	elif code == 218: raise InvalidDevice(data)
+	elif code == 219: raise AccountLimitReached(data) or TooManyRequests(data)
 	elif code == 225: raise UserUnavailable(data)
 	elif code == 229: raise YouAreBanned(data)
 	elif code == 230: raise UserNotMemberOfCommunity(data)
