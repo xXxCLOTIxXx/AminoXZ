@@ -81,9 +81,6 @@ class Client():
 		else:return json.loads(response.text)["mediaValue"]
 
 
-
-
-
 	def login_phone(number: str, password: str):
 
 		"""
@@ -262,117 +259,6 @@ class Client():
 		return info
 
 
-
-	def get_my_chats(self, start: int = 0, size: int = 25, comId: str = None):
-
-		"""
-
-		Get chats on account
-
-
-		** options **
-
-		- *start* : Where to start the list.
-		- *size* : The size of the list.
-		-*comId*: Community id (if you want to get a list of chats from a community, otherwise you will get a list of chats in the global amino menu)
-
-
-		"""
-		if comId!=None:
-			response = self.session.get(f"{self.api}/x{comId}/s/chat/thread?type=joined-me&start={start}&size={size}", headers=self.headers(), proxies=self.proxies)
-			if response.status_code != 200: return exceptions.checkExceptions(json.loads(response.text))
-			else: return json.loads(response.text)["threadList"]
-		else:
-			response = self.session.get(f"{self.api}/g/s/chat/thread?type=joined-me&start={start}&size={size}", headers=self.headers(), proxies=self.proxies)
-			if response.status_code != 200: return exceptions.checkExceptions(json.loads(response.text))
-			else: return json.loads(response.text)["threadList"]
-
-	def get_my_communities(self, start: int = 0, size: int = 25):
-
-		"""
-
-		Get communities on account
-
-
-		** options **
-
-		- *start* : Where to start the list.
-		- *size* : The size of the list.
-
-		"""
-		response = self.session.get(f"{self.api}/g/s/community/joined?v=1&start={start}&size={size}", headers=self.headers(), proxies=self.proxies)
-		if response.status_code != 200: return exceptions.checkExceptions(json.loads(response.text))
-		else: return json.loads(response.text)["communityList"]
-
-	def join_community(self, comId):
-
-
-		"""
-
-		join the community
-
-		** options **
-		-*comId*: Community id
-
-		"""
-
-		data = json.dumps({"timestamp": int(timestamp() * 1000)})
-		response = self.session.post(f"{self.api}/x{comId}/s/community/join", headers=self.headers(data=data), data=data, proxies=self.proxies)
-		if response.status_code != 200: return exceptions.checkExceptions(json.loads(response.text))
-		else: return response.status_code
-
-
-
-
-	def get_chat_thread(self, chatId: str, start: int = 0, size: int = 25, comId: str = None):
-		"""
-
-		Get the Chat Object
-
-
-		** options **
-
-		- *start* : Where to start the list.
-		- *size* : The size of the list.
-		-*comId*: Community id (if the chat is in a community)
-		- *chatId*: Chat Id
-
-		"""
-
-		if comId!=None:
-			response = self.session.get(f"{self.api}/x{comId}/s/chat/thread/{chatId}", headers=self.headers(), proxies=self.proxies)
-			if response.status_code != 200: return exceptions.checkExceptions(json.loads(response.text))
-			else: return json.loads(response.text)["thread"]
-		else:
-			response = self.session.get(f"{self.api}/g/s/chat/thread/{chatId}", headers=self.headers(), proxies=self.proxies)
-			if response.status_code != 200: return exceptions.checkExceptions(json.loads(response.text))
-			else: return json.loads(response.text)["thread"]
-
-	def get_chat_messages(self, chatId: str, start: int = 0, size: int = 25, comId: str = None):
-
-		"""
-
-		Get the Chat messages
-
-
-		** options **
-
-		- *start* : Where to start the list.
-		- *size* : The size of the list.
-		-*comId*: Community id (if the chat is in a community)
-		- *chatId*: Chat Id
-
-		"""
-		if comId!=None:
-			response = self.session.get(f"{self.api}/x{comId}/s/chat/thread/{chatId}/message?v=2&pagingType=t&size={size}", headers=self.headers(), proxies=self.proxies)
-			if response.status_code != 200: return exceptions.checkExceptions(json.loads(response.text))
-			else: return json.loads(response.text)['messageList']
-		else:
-			response = self.session.get(f"{self.api}/g/s/chat/thread/{chatId}/message?v=2&pagingType=t&size={size}", headers=self.headers(), proxies=self.proxies)
-			if response.status_code != 200: return exceptions.checkExceptions(json.loads(response.text))
-			else: return json.loads(response.text)['messageList']
-
-
 	def get_from_link(self, link: str):
 		"""
 		Get the information from the Amino URL.
@@ -383,116 +269,6 @@ class Client():
 		response = self.session.get(f"{self.api}/g/s/link-resolution?q={link}", headers=self.headers(), proxies=self.proxies)
 		if response.status_code != 200: return exceptions.checkExceptions(json.loads(response.text))
 		else: return json.loads(response.text)["linkInfoV2"]
-
-	def get_chat_members(self, chatId: str, comId: str, start: int = 0, size: int = 25):
-		"""
-		Get chat members
-		** options **
-
-		- *start* : Where to start the list.
-		- *size* : The size of the list.
-		- *chatId* : chat id
-		- *comId*: community id
-		"""
-
-
-		if comId !=None:
-			response = self.session.get(f"{self.api}/x{comId}/s/chat/thread/{chatId}/member?start={start}&size={size}&type=default&cv=1.2", headers=self.headers(), proxies=self.proxies)
-			if response.status_code != 200: return exceptions.checkExceptions(json.loads(response.text))
-			else: return json.loads(response.text)["memberList"]	
-
-		response = self.session.get(f"{self.api}/g/s/chat/thread/{chatId}/member?start={start}&size={size}&type=default&cv=1.2", headers=self.headers(), proxies=self.proxies)
-		if response.status_code != 200: return exceptions.checkExceptions(json.loads(response.text))
-		else: return json.loads(response.text)["memberList"]
-
-	def get_community_members(self, comId: str,  type: str = "recent", start: int = 0, size: int = 25):
-
-		"""
-		Get chat members
-		** options **
-
-		- *start* : Where to start the list.
-		- *size* : The size of the list.
-		- *comId*: community id (if chat in community)
-		- *type*: type of participants 
-		
-		=-types-=
-		recent - recent members
-		online - online users 
-		banned - banned users
-		featured - featured members
-		leaders - leaders
-		curators - curators
-
-		"""
-		if type == "recent": response = self.session.get(f"{self.api}/x{comId}/s/user-profile?type=recent&start={start}&size={size}", headers=self.headers(), proxies=self.proxies)
-		elif type == 'online': response = self.session.get(f"{self.api}/x{comId}/s/live-layer?topic=ndtopic:x{comId}:online-members&start={start}&size={size}", headers=self.headers(), proxies=self.proxies)
-		elif type == "banned": response = self.session.get(f"{self.api}/x{comId}/s/user-profile?type=banned&start={start}&size={size}", headers=self.headers(), proxies=self.proxies)
-		elif type == "featured": response = self.session.get(f"{self.api}/x{comId}/s/user-profile?type=featured&start={start}&size={size}", headers=self.headers(), proxies=self.proxies)
-		elif type == "leaders": response = self.session.get(f"{self.api}/x{comId}/s/user-profile?type=leaders&start={start}&size={size}", headers=self.headers(), proxies=self.proxies)
-		elif type == "curators": response = self.session.get(f"{self.api}/x{comId}/s/user-profile?type=curators&start={start}&size={size}", headers=self.headers(), proxies=self.proxies)
-		if response.status_code != 200: return exceptions.checkExceptions(json.loads(response.text))
-		else: return json.loads(response.text)
-
-
-
-	def get_user_info(self, userId: str, comId: str = None):
-		"""
-		get user information
-
-
-		** options **
-
-		- *userId* : user id
-		- *comId*: community id (if you want to get a profile from a community)
-
-		"""
-		if comId!=None:
-			response = self.session.get(f"{self.api}/x{comId}/s/user-profile/{self.uid}", headers=self.headers(), proxies=self.proxies)
-			if response.status_code != 200: return exceptions.checkExceptions(json.loads(response.text))
-			else: return json.loads(response.text)["userProfile"]
-
-		response = self.session.get(f"{self.api}/g/s/user-profile/{userId}", headers=self.headers(), proxies=self.proxies)
-		if response.status_code != 200: return exceptions.checkExceptions(json.loads(response.text))
-		else: return json.loads(response.text)["userProfile"]
-
-
-	def join_chat(self, chatId: str, comId: str = None):
-		"""
-		Join chat
-
-		** options **
-		- *chatId* : Chat id
-		- *comId*: community id (if the chat is in a community)
-
-		"""
-		if comId!=None:
-			response = self.session.post(f"{self.api}/x{comId}/s/chat/thread/{chatId}/member/{self.uid}", headers=self.headers(), proxies=self.proxies)
-			if response.status_code != 200: return exceptions.checkExceptions(json.loads(response.text))
-			else: return response.status_code
-
-
-		response = self.session.post(f"{self.api}/g/s/chat/thread/{chatId}/member/{self.uid}", headers=self.headers(), proxies=self.proxies)
-		if response.status_code != 200: return exceptions.checkExceptions(json.loads(response.text))
-		else: response.status_code
-
-	def leave_chat(self, chatId: str, comId: str = None):
-		"""
-		Leave chat
-
-		** options **
-		- **chatId** : Chat id
-		- *comId*: community id (if the chat is in a community)
-
-		"""
-		if comId!=None:
-			response = self.session.delete(f"{self.api}/x{comId}/s/chat/thread/{chatId}/member/{self.uid}", headers=self.headers(), proxies=self.proxies)
-			if response.status_code != 200: return exceptions.checkExceptions(json.loads(response.text))
-			else: return response.status_code
-
-		response = self.session.delete(f"{self.api}/g/s/chat/thread/{chatId}/member/{self.uid}", headers=self.headers(), proxies=self.proxies)
-		if response.status_code != 200: return exceptions.checkExceptions(json.loads(response.text))
-		else: return response.status_code
 
 
 	def change_global_profile(self, name: str = None, content: str = None, icon: BinaryIO = None, backgroundColor: str = None, backgroundImage: str = None, bubbleId: str = None):
@@ -552,47 +328,17 @@ class Client():
 
 
 
-	def get_message_info(self, chatId: str, messageId: str): #do
-		"""
-		Message Information
-		** options **
-
-		- **chatId** : Chat id
-		- **messageId** : Message id
-
-		"""
-		response = self.session.get(f"{self.api}/g/s/chat/thread/{chatId}/message/{messageId}", headers=self.headers(data=data), proxies=self.proxies)
-		if response.status_code != 200: return exceptions.checkExceptions(json.loads(response.text))
-		else: return json.loads(response.text)["message"]
 
 
-	def get_community_info(self, comId: str):
-		"""
-		Community information
 
-		** options **
-		- *comId* : Community id
-		"""
-
-		response = self.session.get(f"{self.api}/g/s-x{comId}/community/info?withInfluencerList=1&withTopicList=true&influencerListOrderStrategy=fansCount", headers=self.headers(), proxies=self.proxies)
-		if response.status_code != 200: return exceptions.checkExceptions(json.loads(response.text))
-		else: return json.loads(response.text)["community"]
 
 
 	"""
 
-
-										░██╗░░░░░░░██╗███████╗██████╗░      ███████╗██╗░░░██╗███╗░░██╗░█████╗░████████╗██╗░█████╗░███╗░░██╗░██████╗
-										░██║░░██╗░░██║██╔════╝██╔══██╗      ██╔════╝██║░░░██║████╗░██║██╔══██╗╚══██╔══╝██║██╔══██╗████╗░██║██╔════╝
-										░╚██╗████╗██╔╝█████╗░░██████╦╝      █████╗░░██║░░░██║██╔██╗██║██║░░╚═╝░░░██║░░░██║██║░░██║██╔██╗██║╚█████╗░
-										░░████╔═████║░██╔══╝░░██╔══██╗      ██╔══╝░░██║░░░██║██║╚████║██║░░██╗░░░██║░░░██║██║░░██║██║╚████║░╚═══██╗
-										░░╚██╔╝░╚██╔╝░███████╗██████╦╝      ██║░░░░░╚██████╔╝██║░╚███║╚█████╔╝░░░██║░░░██║╚█████╔╝██║░╚███║██████╔╝
-										░░░╚═╝░░░╚═╝░░╚══════╝╚═════╝░      ╚═╝░░░░░░╚═════╝░╚═╝░░╚══╝░╚════╝░░░░╚═╝░░░╚═╝░╚════╝░╚═╝░░╚══╝╚═════╝░
-
+		█▀▀ █░█ ▄▀█ ▀█▀   █▀▀ █░█ █▄░█ █▀▀ ▀█▀ █ █▀█ █▄░█ █▀
+		█▄▄ █▀█ █▀█ ░█░   █▀░ █▄█ █░▀█ █▄▄ ░█░ █ █▄█ █░▀█ ▄█
 
 	"""
-
-
 
 
 	def send_message_web(self, chatId: str, comId: str, message: str, messageType: int = 0):
@@ -677,3 +423,289 @@ class Client():
 		response = self.session.post(f"https://aminoapps.com/api/leave-thread", headers=self.web_headers(referer=f"https://aminoapps.com/partial/main-chat-window?ndcId={comId}"), data=data, proxies=self.proxies)
 		if response.status_code != 200: return exceptions.checkExceptions(json.loads(response.text))
 		else: return response.status_code
+
+
+	def join_chat(self, chatId: str, comId: str = None):
+		"""
+		Join chat
+
+		** options **
+		- *chatId* : Chat id
+		- *comId*: community id (if the chat is in a community)
+
+		"""
+		if comId!=None:
+			response = self.session.post(f"{self.api}/x{comId}/s/chat/thread/{chatId}/member/{self.uid}", headers=self.headers(), proxies=self.proxies)
+			if response.status_code != 200: return exceptions.checkExceptions(json.loads(response.text))
+			else: return response.status_code
+
+
+		response = self.session.post(f"{self.api}/g/s/chat/thread/{chatId}/member/{self.uid}", headers=self.headers(), proxies=self.proxies)
+		if response.status_code != 200: return exceptions.checkExceptions(json.loads(response.text))
+		else: response.status_code
+
+	def leave_chat(self, chatId: str, comId: str = None):
+		"""
+		Leave chat
+
+		** options **
+		- **chatId** : Chat id
+		- *comId*: community id (if the chat is in a community)
+
+		"""
+		if comId!=None:
+			response = self.session.delete(f"{self.api}/x{comId}/s/chat/thread/{chatId}/member/{self.uid}", headers=self.headers(), proxies=self.proxies)
+			if response.status_code != 200: return exceptions.checkExceptions(json.loads(response.text))
+			else: return response.status_code
+
+		response = self.session.delete(f"{self.api}/g/s/chat/thread/{chatId}/member/{self.uid}", headers=self.headers(), proxies=self.proxies)
+		if response.status_code != 200: return exceptions.checkExceptions(json.loads(response.text))
+		else: return response.status_code
+
+
+
+
+
+
+	def get_my_chats(self, start: int = 0, size: int = 25, comId: str = None):
+
+		"""
+
+		Get chats on account
+
+
+		** options **
+
+		- *start* : Where to start the list.
+		- *size* : The size of the list.
+		-*comId*: Community id (if you want to get a list of chats from a community, otherwise you will get a list of chats in the global amino menu)
+
+
+		"""
+		if comId!=None:
+			response = self.session.get(f"{self.api}/x{comId}/s/chat/thread?type=joined-me&start={start}&size={size}", headers=self.headers(), proxies=self.proxies)
+			if response.status_code != 200: return exceptions.checkExceptions(json.loads(response.text))
+			else: return json.loads(response.text)["threadList"]
+		else:
+			response = self.session.get(f"{self.api}/g/s/chat/thread?type=joined-me&start={start}&size={size}", headers=self.headers(), proxies=self.proxies)
+			if response.status_code != 200: return exceptions.checkExceptions(json.loads(response.text))
+			else: return json.loads(response.text)["threadList"]
+
+
+	def get_chat_thread(self, chatId: str, start: int = 0, size: int = 25, comId: str = None):
+		"""
+
+		Get the Chat Object
+
+
+		** options **
+
+		- *start* : Where to start the list.
+		- *size* : The size of the list.
+		-*comId*: Community id (if the chat is in a community)
+		- *chatId*: Chat Id
+
+		"""
+
+		if comId!=None:
+			response = self.session.get(f"{self.api}/x{comId}/s/chat/thread/{chatId}", headers=self.headers(), proxies=self.proxies)
+			if response.status_code != 200: return exceptions.checkExceptions(json.loads(response.text))
+			else: return json.loads(response.text)["thread"]
+		else:
+			response = self.session.get(f"{self.api}/g/s/chat/thread/{chatId}", headers=self.headers(), proxies=self.proxies)
+			if response.status_code != 200: return exceptions.checkExceptions(json.loads(response.text))
+			else: return json.loads(response.text)["thread"]
+
+	def get_chat_messages(self, chatId: str, start: int = 0, size: int = 25, comId: str = None):
+
+		"""
+
+		Get the Chat messages
+
+
+		** options **
+
+		- *start* : Where to start the list.
+		- *size* : The size of the list.
+		-*comId*: Community id (if the chat is in a community)
+		- *chatId*: Chat Id
+
+		"""
+		if comId!=None:
+			response = self.session.get(f"{self.api}/x{comId}/s/chat/thread/{chatId}/message?v=2&pagingType=t&size={size}", headers=self.headers(), proxies=self.proxies)
+			if response.status_code != 200: return exceptions.checkExceptions(json.loads(response.text))
+			else: return json.loads(response.text)['messageList']
+		else:
+			response = self.session.get(f"{self.api}/g/s/chat/thread/{chatId}/message?v=2&pagingType=t&size={size}", headers=self.headers(), proxies=self.proxies)
+			if response.status_code != 200: return exceptions.checkExceptions(json.loads(response.text))
+			else: return json.loads(response.text)['messageList']
+
+	def get_public_chat_threads(self, comId: str, type: str = "recommended", start: int = 0, size: int = 25):
+		"""
+
+		Get public chats
+
+
+		** options **
+
+		- *start* : Where to start the list.
+		- *size* : The size of the list.
+		-*comId*: Community id (if the chat is in a community)
+
+		"""
+		response = self.session.get(f"{self.api}/x{comId}/s/chat/thread?type=public-all&filterType={type}&start={start}&size={size}", headers=self.headers())
+		if response.status_code != 200: raise Exception(json.loads(response.text))
+		else: return json.loads(response.text)["threadList"]
+
+
+
+	def get_chat_members(self, chatId: str, comId: str, start: int = 0, size: int = 25):
+		"""
+		Get chat members
+		** options **
+
+		- *start* : Where to start the list.
+		- *size* : The size of the list.
+		- *chatId* : chat id
+		- *comId*: community id
+		"""
+
+
+		if comId !=None:
+			response = self.session.get(f"{self.api}/x{comId}/s/chat/thread/{chatId}/member?start={start}&size={size}&type=default&cv=1.2", headers=self.headers(), proxies=self.proxies)
+			if response.status_code != 200: return exceptions.checkExceptions(json.loads(response.text))
+			else: return json.loads(response.text)["memberList"]	
+
+		response = self.session.get(f"{self.api}/g/s/chat/thread/{chatId}/member?start={start}&size={size}&type=default&cv=1.2", headers=self.headers(), proxies=self.proxies)
+		if response.status_code != 200: return exceptions.checkExceptions(json.loads(response.text))
+		else: return json.loads(response.text)["memberList"]
+
+
+
+
+	def get_community_members(self, comId: str,  type: str = "recent", start: int = 0, size: int = 25):
+
+		"""
+		Get chat members
+		** options **
+
+		- *start* : Where to start the list.
+		- *size* : The size of the list.
+		- *comId*: community id (if chat in community)
+		- *type*: type of participants 
+		
+		=-types-=
+		recent - recent members
+		online - online users 
+		banned - banned users
+		featured - featured members
+		leaders - leaders
+		curators - curators
+
+		"""
+		if type == "recent": response = self.session.get(f"{self.api}/x{comId}/s/user-profile?type=recent&start={start}&size={size}", headers=self.headers(), proxies=self.proxies)
+		elif type == 'online': response = self.session.get(f"{self.api}/x{comId}/s/live-layer?topic=ndtopic:x{comId}:online-members&start={start}&size={size}", headers=self.headers(), proxies=self.proxies)
+		elif type == "banned": response = self.session.get(f"{self.api}/x{comId}/s/user-profile?type=banned&start={start}&size={size}", headers=self.headers(), proxies=self.proxies)
+		elif type == "featured": response = self.session.get(f"{self.api}/x{comId}/s/user-profile?type=featured&start={start}&size={size}", headers=self.headers(), proxies=self.proxies)
+		elif type == "leaders": response = self.session.get(f"{self.api}/x{comId}/s/user-profile?type=leaders&start={start}&size={size}", headers=self.headers(), proxies=self.proxies)
+		elif type == "curators": response = self.session.get(f"{self.api}/x{comId}/s/user-profile?type=curators&start={start}&size={size}", headers=self.headers(), proxies=self.proxies)
+		if response.status_code != 200: return exceptions.checkExceptions(json.loads(response.text))
+		else: return json.loads(response.text)
+
+
+	def get_message_info(self, chatId: str, messageId: str): #do
+		"""
+		Message Information
+		** options **
+
+		- **chatId** : Chat id
+		- **messageId** : Message id
+
+		"""
+		response = self.session.get(f"{self.api}/g/s/chat/thread/{chatId}/message/{messageId}", headers=self.headers(data=data), proxies=self.proxies)
+		if response.status_code != 200: return exceptions.checkExceptions(json.loads(response.text))
+		else: return json.loads(response.text)["message"]
+
+
+
+
+	"""
+				█▀▀ █▀█ █▀▄▀█ █▀▄▀█ █░█ █▄░█ █ ▀█▀ █▄█   █▀▀ █░█ █▄░█ █▀▀ ▀█▀ █ █▀█ █▄░█ █▀
+				█▄▄ █▄█ █░▀░█ █░▀░█ █▄█ █░▀█ █ ░█░ ░█░   █▀░ █▄█ █░▀█ █▄▄ ░█░ █ █▄█ █░▀█ ▄█
+
+	"""
+
+
+	def get_community_info(self, comId: str):
+		"""
+		Community information
+
+		** options **
+		- *comId* : Community id
+		"""
+
+		response = self.session.get(f"{self.api}/g/s-x{comId}/community/info?withInfluencerList=1&withTopicList=true&influencerListOrderStrategy=fansCount", headers=self.headers(), proxies=self.proxies)
+		if response.status_code != 200: return exceptions.checkExceptions(json.loads(response.text))
+		else: return json.loads(response.text)["community"]
+
+	def get_my_communities(self, start: int = 0, size: int = 25):
+
+		"""
+
+		Get communities on account
+
+
+		** options **
+
+		- *start* : Where to start the list.
+		- *size* : The size of the list.
+
+		"""
+		response = self.session.get(f"{self.api}/g/s/community/joined?v=1&start={start}&size={size}", headers=self.headers(), proxies=self.proxies)
+		if response.status_code != 200: return exceptions.checkExceptions(json.loads(response.text))
+		else: return json.loads(response.text)["communityList"]
+
+	def join_community(self, comId):
+
+
+		"""
+
+		join the community
+
+		** options **
+		-*comId*: Community id
+
+		"""
+
+		data = json.dumps({"timestamp": int(timestamp() * 1000)})
+		response = self.session.post(f"{self.api}/x{comId}/s/community/join", headers=self.headers(data=data), data=data, proxies=self.proxies)
+		if response.status_code != 200: return exceptions.checkExceptions(json.loads(response.text))
+		else: return response.status_code
+
+
+
+
+
+	#user functions
+
+
+
+	def get_user_info(self, userId: str, comId: str = None):
+		"""
+		get user information
+
+
+		** options **
+
+		- *userId* : user id
+		- *comId*: community id (if you want to get a profile from a community)
+
+		"""
+		if comId!=None:
+			response = self.session.get(f"{self.api}/x{comId}/s/user-profile/{self.uid}", headers=self.headers(), proxies=self.proxies)
+			if response.status_code != 200: return exceptions.checkExceptions(json.loads(response.text))
+			else: return json.loads(response.text)["userProfile"]
+
+		response = self.session.get(f"{self.api}/g/s/user-profile/{userId}", headers=self.headers(), proxies=self.proxies)
+		if response.status_code != 200: return exceptions.checkExceptions(json.loads(response.text))
+		else: return json.loads(response.text)["userProfile"]
