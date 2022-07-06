@@ -1,9 +1,10 @@
 from time import time as timestamp
 import json
-from .lib.util import generator as gen
-from .lib.util import exceptions, helpers
+from .lib.util.generator import Generator
+from .lib.util import exceptions, helpers, headers
 import requests
 from typing import BinaryIO
+
 
 """
 	Made by Xsarz (@DXsarz)
@@ -21,45 +22,19 @@ class Client():
 		self.sid = None
 		self.proxies=proxies
 		self.session = requests.Session()
-		self.community_id = None
 		self.api = "https://service.narvii.com/api/v1"
 		self.web_api = "https://aminoapps.com/api"
 		self.uid = None
-		self.generator = gen.Generator()
-		self.device = self.generator.deviceId()
+		self.device = Generator().deviceId()
 		self.User_Agent = self.device["user_agent"]
 		if deviceId!=None:self.device_id = deviceId
 		else:self.device_id = self.device["device_id"]
 
-	def headers(self, data=None, content_type=None):
-		headers = {
-			"NDCDEVICEID": self.device_id,
-			"Accept-Language": "ru-RU",
-			"Content-Type": "application/json; charset=utf-8",
-			"User-Agent": self.User_Agent,
-			"Host": "service.narvii.com",
-			"Accept-Encoding": "gzip",
-			"Connection": "Upgrade"
-		}
+	def parser(self, header_type: str = "app", data = None, content_type: str = None, referer: str = None):
+		if header_type == 'app':return headers.headers(data=data, content_type=content_type, deviceId=self.device_id, sid=self.sid).headers
+		elif header_type == 'web':return headers.web_headers(referer=referer, sid=self.sid).headers
+		else:return headers.headers(data=data, content_type=content_type, deviceId=self.device_id, sid=self.sid).headers
 
-		if data is not None:
-			headers["Content-Length"] = str(len(data))
-			headers["NDC-MSG-SIG"] = self.generator.signature(data=data)
-		if self.sid is not None:
-			headers["NDCAUTH"] = f"sid={self.sid}"
-		if content_type is not None:
-			headers["Content-Type"] = content_type
-		return headers
-
-	def web_headers(self, referer):
-		headers = {
-			"user-agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Ubuntu Chromium/73.0.3683.86 Chrome/73.0.3683.86 Safari/537.36",
-			"content-type": "application/json",
-			"x-requested-with": "xmlhttprequest",
-			"cookie": f"sid={self.sid}",
-			"referer": referer
-		}
-		return headers
 
 	def upload_media(self, file: BinaryIO, fileType: str):
 		"""
@@ -103,7 +78,7 @@ class Client():
 			"timestamp": int(timestamp() * 1000)
 		})
 
-		response = self.session.post(f"{self.api}/g/s/auth/login", headers=self.headers(data=data), data=data, proxies=self.proxies)
+		response = self.session.post(f"{self.api}/g/s/auth/login", headers=self.parser(data=data), data=data, proxies=self.proxies)
 		if response.status_code != 200: return exceptions.checkExceptions(json.loads(response.text))
 		else: json_response = json.loads(response.text)
 		self.sid = self.json_response["sid"]
@@ -148,7 +123,7 @@ class Client():
 			"action": "normal",
 			"timestamp": int(timestamp() * 1000)
 		})
-		with self.session.post(f"{self.api}/g/s/auth/login", headers=self.headers(data=data), data=data, proxies=self.proxies) as response:
+		with self.session.post(f"{self.api}/g/s/auth/login", headers=self.parser(data=data), data=data, proxies=self.proxies) as response:
 			if response.status_code != 200: return exceptions.checkExceptions(json.loads(response.text))
 			else:json_response = json.loads(response.text)
 		self.sid = json_response["sid"]
@@ -164,7 +139,7 @@ class Client():
 		"clientType": 100,
 		"timestamp": int(timestamp() * 1000)
 		})
-		response = self.session.post(f"{self.api}/g/s/auth/logout", headers=self.headers(data=data), data=data, proxies=self.proxies)
+		response = self.session.post(f"{self.api}/g/s/auth/logout", headers=self.parser(data=data), data=data, proxies=self.proxies)
 		if response.status_code != 200:return exceptions.CheckException(json.loads(response.text))
 		else:
 			self.sid = None
@@ -210,7 +185,7 @@ class Client():
 				"timestamp": int(timestamp() * 1000)
 				})        
 
-		response = self.session.post(f"{self.api}/g/s/auth/register", data=data, headers=self.headers(data=data), proxies=self.proxies)
+		response = self.session.post(f"{self.api}/g/s/auth/register", data=data, headers=self.parser(data=data), proxies=self.proxies)
 		if response.status_code != 200: return exceptions.checkExceptions(json.loads(response.text))
 		else: return json.loads(response.text)
 
@@ -230,7 +205,7 @@ class Client():
 			data["purpose"] = "reset-password"
 
 		data = json.dumps(data)
-		response = self.session.post(f"{self.api}/g/s/auth/request-security-validation", headers=self.headers(data=data), data=data, timeout=timeout, proxies=self.proxies)
+		response = self.session.post(f"{self.api}/g/s/auth/request-security-validation", headers=self.parser(data=data), data=data, timeout=timeout, proxies=self.proxies)
 		if response.status_code != 200:return exceptions.checkExceptions(json.loads(response.text))
 		else:return response.status_code
 
@@ -242,7 +217,7 @@ class Client():
 
 		"""
 
-		response = self.session.get(f"{self.api}/g/s/account", headers=self.headers(), proxies=self.proxies)
+		response = self.session.get(f"{self.api}/g/s/account", headers=self.parser(), proxies=self.proxies)
 		if response.status_code != 200: return exceptions.checkExceptions(json.loads(response.text))
 		else: information_from_the_server = json.loads(response.text)["account"]
 
@@ -266,7 +241,7 @@ class Client():
 		- *link* : link.
 
 		"""
-		response = self.session.get(f"{self.api}/g/s/link-resolution?q={link}", headers=self.headers(), proxies=self.proxies)
+		response = self.session.get(f"{self.api}/g/s/link-resolution?q={link}", headers=self.parser(), proxies=self.proxies)
 		if response.status_code != 200: return exceptions.checkExceptions(json.loads(response.text))
 		else: return json.loads(response.text)["linkInfoV2"]
 
@@ -302,7 +277,7 @@ class Client():
 		if bubbleId!=None: data["extensions"] = {"defaultBubbleId": bubbleId}
 
 		data = json.dumps(data)
-		response = self.session.post(f"{self.api}/g/s/user-profile/{self.uid}", headers=self.headers(data=data), data=data, proxies=self.proxies)
+		response = self.session.post(f"{self.api}/g/s/user-profile/{self.uid}", headers=self.parser(data=data), data=data, proxies=self.proxies)
 		if response.status_code != 200: return exceptions.checkExceptions(json.loads(response.text))
 		else:return response.status_code
 
@@ -322,7 +297,7 @@ class Client():
 		if name!=None: data["nickname"] = name
 		if content!=None: data["content"] = content
 		data = json.dumps(data)
-		response = self.session.post(f"{self.api}/x{comId}/s/user-profile/{self.uid}", headers=self.headers(data=data), data=data, proxies=self.proxies)
+		response = self.session.post(f"{self.api}/x{comId}/s/user-profile/{self.uid}", headers=self.parser(data=data), data=data, proxies=self.proxies)
 		if response.status_code != 200: return exceptions.checkExceptions(json.loads(response.text))
 		else:return response.status_code
 
@@ -370,7 +345,7 @@ class Client():
 			}
 		}
 		data = json.dumps(data)
-		response = self.session.post(f"https://aminoapps.com/api/add-chat-message",headers=self.web_headers(referer=f"https://aminoapps.com/partial/main-chat-window?ndcId={comId}"),data=data, proxies=self.proxies)
+		response = self.session.post(f"https://aminoapps.com/api/add-chat-message",headers=self.parser(referer=f"https://aminoapps.com/partial/main-chat-window?ndcId={comId}", header_type='web'),data=data, proxies=self.proxies)
 		if response.status_code != 200: return exceptions.checkExceptions(json.loads(response.text))
 		else: return response.status_code	
 
@@ -396,7 +371,7 @@ class Client():
 			"threadId": chatId
 		}
 		data = json.dumps(data)
-		response = self.session.post(f"https://aminoapps.com/api/join-thread", headers=self.web_headers(referer=f"https://aminoapps.com/partial/main-chat-window?ndcId={comId}"), data=data, proxies=self.proxies)
+		response = self.session.post(f"https://aminoapps.com/api/join-thread", headers=self.parser(referer=f"https://aminoapps.com/partial/main-chat-window?ndcId={comId}", header_type='web'), data=data, proxies=self.proxies)
 		if response.status_code != 200: return exceptions.checkExceptions(json.loads(response.text))
 		else: return response.status_code
 
@@ -420,7 +395,7 @@ class Client():
 			"threadId": chatId
 		}
 		data = json.dumps(data)
-		response = self.session.post(f"https://aminoapps.com/api/leave-thread", headers=self.web_headers(referer=f"https://aminoapps.com/partial/main-chat-window?ndcId={comId}"), data=data, proxies=self.proxies)
+		response = self.session.post(f"https://aminoapps.com/api/leave-thread", headers=self.parser(referer=f"https://aminoapps.com/partial/main-chat-window?ndcId={comId}", header_type='web'), data=data, proxies=self.proxies)
 		if response.status_code != 200: return exceptions.checkExceptions(json.loads(response.text))
 		else: return response.status_code
 
@@ -435,12 +410,12 @@ class Client():
 
 		"""
 		if comId!=None:
-			response = self.session.post(f"{self.api}/x{comId}/s/chat/thread/{chatId}/member/{self.uid}", headers=self.headers(), proxies=self.proxies)
+			response = self.session.post(f"{self.api}/x{comId}/s/chat/thread/{chatId}/member/{self.uid}", headers=self.parser(), proxies=self.proxies)
 			if response.status_code != 200: return exceptions.checkExceptions(json.loads(response.text))
 			else: return response.status_code
 
 
-		response = self.session.post(f"{self.api}/g/s/chat/thread/{chatId}/member/{self.uid}", headers=self.headers(), proxies=self.proxies)
+		response = self.session.post(f"{self.api}/g/s/chat/thread/{chatId}/member/{self.uid}", headers=self.parser(), proxies=self.proxies)
 		if response.status_code != 200: return exceptions.checkExceptions(json.loads(response.text))
 		else: response.status_code
 
@@ -454,11 +429,11 @@ class Client():
 
 		"""
 		if comId!=None:
-			response = self.session.delete(f"{self.api}/x{comId}/s/chat/thread/{chatId}/member/{self.uid}", headers=self.headers(), proxies=self.proxies)
+			response = self.session.delete(f"{self.api}/x{comId}/s/chat/thread/{chatId}/member/{self.uid}", headers=self.parser(), proxies=self.proxies)
 			if response.status_code != 200: return exceptions.checkExceptions(json.loads(response.text))
 			else: return response.status_code
 
-		response = self.session.delete(f"{self.api}/g/s/chat/thread/{chatId}/member/{self.uid}", headers=self.headers(), proxies=self.proxies)
+		response = self.session.delete(f"{self.api}/g/s/chat/thread/{chatId}/member/{self.uid}", headers=self.parser(), proxies=self.proxies)
 		if response.status_code != 200: return exceptions.checkExceptions(json.loads(response.text))
 		else: return response.status_code
 
@@ -483,11 +458,11 @@ class Client():
 
 		"""
 		if comId!=None:
-			response = self.session.get(f"{self.api}/x{comId}/s/chat/thread?type=joined-me&start={start}&size={size}", headers=self.headers(), proxies=self.proxies)
+			response = self.session.get(f"{self.api}/x{comId}/s/chat/thread?type=joined-me&start={start}&size={size}", headers=self.parser(), proxies=self.proxies)
 			if response.status_code != 200: return exceptions.checkExceptions(json.loads(response.text))
 			else: return json.loads(response.text)["threadList"]
 		else:
-			response = self.session.get(f"{self.api}/g/s/chat/thread?type=joined-me&start={start}&size={size}", headers=self.headers(), proxies=self.proxies)
+			response = self.session.get(f"{self.api}/g/s/chat/thread?type=joined-me&start={start}&size={size}", headers=self.parser(), proxies=self.proxies)
 			if response.status_code != 200: return exceptions.checkExceptions(json.loads(response.text))
 			else: return json.loads(response.text)["threadList"]
 
@@ -508,11 +483,11 @@ class Client():
 		"""
 
 		if comId!=None:
-			response = self.session.get(f"{self.api}/x{comId}/s/chat/thread/{chatId}", headers=self.headers(), proxies=self.proxies)
+			response = self.session.get(f"{self.api}/x{comId}/s/chat/thread/{chatId}", headers=self.parser(), proxies=self.proxies)
 			if response.status_code != 200: return exceptions.checkExceptions(json.loads(response.text))
 			else: return json.loads(response.text)["thread"]
 		else:
-			response = self.session.get(f"{self.api}/g/s/chat/thread/{chatId}", headers=self.headers(), proxies=self.proxies)
+			response = self.session.get(f"{self.api}/g/s/chat/thread/{chatId}", headers=self.parser(), proxies=self.proxies)
 			if response.status_code != 200: return exceptions.checkExceptions(json.loads(response.text))
 			else: return json.loads(response.text)["thread"]
 
@@ -532,11 +507,11 @@ class Client():
 
 		"""
 		if comId!=None:
-			response = self.session.get(f"{self.api}/x{comId}/s/chat/thread/{chatId}/message?v=2&pagingType=t&size={size}", headers=self.headers(), proxies=self.proxies)
+			response = self.session.get(f"{self.api}/x{comId}/s/chat/thread/{chatId}/message?v=2&pagingType=t&size={size}", headers=self.parser(), proxies=self.proxies)
 			if response.status_code != 200: return exceptions.checkExceptions(json.loads(response.text))
 			else: return json.loads(response.text)['messageList']
 		else:
-			response = self.session.get(f"{self.api}/g/s/chat/thread/{chatId}/message?v=2&pagingType=t&size={size}", headers=self.headers(), proxies=self.proxies)
+			response = self.session.get(f"{self.api}/g/s/chat/thread/{chatId}/message?v=2&pagingType=t&size={size}", headers=self.parser(), proxies=self.proxies)
 			if response.status_code != 200: return exceptions.checkExceptions(json.loads(response.text))
 			else: return json.loads(response.text)['messageList']
 
@@ -553,7 +528,7 @@ class Client():
 		-*comId*: Community id (if the chat is in a community)
 
 		"""
-		response = self.session.get(f"{self.api}/x{comId}/s/chat/thread?type=public-all&filterType={type}&start={start}&size={size}", headers=self.headers())
+		response = self.session.get(f"{self.api}/x{comId}/s/chat/thread?type=public-all&filterType={type}&start={start}&size={size}", headers=self.parser())
 		if response.status_code != 200: raise Exception(json.loads(response.text))
 		else: return json.loads(response.text)["threadList"]
 
@@ -572,11 +547,11 @@ class Client():
 
 
 		if comId !=None:
-			response = self.session.get(f"{self.api}/x{comId}/s/chat/thread/{chatId}/member?start={start}&size={size}&type=default&cv=1.2", headers=self.headers(), proxies=self.proxies)
+			response = self.session.get(f"{self.api}/x{comId}/s/chat/thread/{chatId}/member?start={start}&size={size}&type=default&cv=1.2", headers=self.parser(), proxies=self.proxies)
 			if response.status_code != 200: return exceptions.checkExceptions(json.loads(response.text))
 			else: return json.loads(response.text)["memberList"]	
 
-		response = self.session.get(f"{self.api}/g/s/chat/thread/{chatId}/member?start={start}&size={size}&type=default&cv=1.2", headers=self.headers(), proxies=self.proxies)
+		response = self.session.get(f"{self.api}/g/s/chat/thread/{chatId}/member?start={start}&size={size}&type=default&cv=1.2", headers=self.parser(), proxies=self.proxies)
 		if response.status_code != 200: return exceptions.checkExceptions(json.loads(response.text))
 		else: return json.loads(response.text)["memberList"]
 
@@ -603,12 +578,12 @@ class Client():
 		curators - curators
 
 		"""
-		if type == "recent": response = self.session.get(f"{self.api}/x{comId}/s/user-profile?type=recent&start={start}&size={size}", headers=self.headers(), proxies=self.proxies)
-		elif type == 'online': response = self.session.get(f"{self.api}/x{comId}/s/live-layer?topic=ndtopic:x{comId}:online-members&start={start}&size={size}", headers=self.headers(), proxies=self.proxies)
-		elif type == "banned": response = self.session.get(f"{self.api}/x{comId}/s/user-profile?type=banned&start={start}&size={size}", headers=self.headers(), proxies=self.proxies)
-		elif type == "featured": response = self.session.get(f"{self.api}/x{comId}/s/user-profile?type=featured&start={start}&size={size}", headers=self.headers(), proxies=self.proxies)
-		elif type == "leaders": response = self.session.get(f"{self.api}/x{comId}/s/user-profile?type=leaders&start={start}&size={size}", headers=self.headers(), proxies=self.proxies)
-		elif type == "curators": response = self.session.get(f"{self.api}/x{comId}/s/user-profile?type=curators&start={start}&size={size}", headers=self.headers(), proxies=self.proxies)
+		if type == "recent": response = self.session.get(f"{self.api}/x{comId}/s/user-profile?type=recent&start={start}&size={size}", headers=self.parser(), proxies=self.proxies)
+		elif type == 'online': response = self.session.get(f"{self.api}/x{comId}/s/live-layer?topic=ndtopic:x{comId}:online-members&start={start}&size={size}", headers=self.parser(), proxies=self.proxies)
+		elif type == "banned": response = self.session.get(f"{self.api}/x{comId}/s/user-profile?type=banned&start={start}&size={size}", headers=self.parser(), proxies=self.proxies)
+		elif type == "featured": response = self.session.get(f"{self.api}/x{comId}/s/user-profile?type=featured&start={start}&size={size}", headers=self.parser(), proxies=self.proxies)
+		elif type == "leaders": response = self.session.get(f"{self.api}/x{comId}/s/user-profile?type=leaders&start={start}&size={size}", headers=self.parser(), proxies=self.proxies)
+		elif type == "curators": response = self.session.get(f"{self.api}/x{comId}/s/user-profile?type=curators&start={start}&size={size}", headers=self.parser(), proxies=self.proxies)
 		if response.status_code != 200: return exceptions.checkExceptions(json.loads(response.text))
 		else: return json.loads(response.text)
 
@@ -622,7 +597,7 @@ class Client():
 		- **messageId** : Message id
 
 		"""
-		response = self.session.get(f"{self.api}/g/s/chat/thread/{chatId}/message/{messageId}", headers=self.headers(data=data), proxies=self.proxies)
+		response = self.session.get(f"{self.api}/g/s/chat/thread/{chatId}/message/{messageId}", headers=self.parser(data=data), proxies=self.proxies)
 		if response.status_code != 200: return exceptions.checkExceptions(json.loads(response.text))
 		else: return json.loads(response.text)["message"]
 
@@ -644,7 +619,7 @@ class Client():
 		- *comId* : Community id
 		"""
 
-		response = self.session.get(f"{self.api}/g/s-x{comId}/community/info?withInfluencerList=1&withTopicList=true&influencerListOrderStrategy=fansCount", headers=self.headers(), proxies=self.proxies)
+		response = self.session.get(f"{self.api}/g/s-x{comId}/community/info?withInfluencerList=1&withTopicList=true&influencerListOrderStrategy=fansCount", headers=self.parser(), proxies=self.proxies)
 		if response.status_code != 200: return exceptions.checkExceptions(json.loads(response.text))
 		else: return json.loads(response.text)["community"]
 
@@ -661,7 +636,7 @@ class Client():
 		- *size* : The size of the list.
 
 		"""
-		response = self.session.get(f"{self.api}/g/s/community/joined?v=1&start={start}&size={size}", headers=self.headers(), proxies=self.proxies)
+		response = self.session.get(f"{self.api}/g/s/community/joined?v=1&start={start}&size={size}", headers=self.parser(), proxies=self.proxies)
 		if response.status_code != 200: return exceptions.checkExceptions(json.loads(response.text))
 		else: return json.loads(response.text)["communityList"]
 
@@ -678,7 +653,7 @@ class Client():
 		"""
 
 		data = json.dumps({"timestamp": int(timestamp() * 1000)})
-		response = self.session.post(f"{self.api}/x{comId}/s/community/join", headers=self.headers(data=data), data=data, proxies=self.proxies)
+		response = self.session.post(f"{self.api}/x{comId}/s/community/join", headers=self.parser(data=data), data=data, proxies=self.proxies)
 		if response.status_code != 200: return exceptions.checkExceptions(json.loads(response.text))
 		else: return response.status_code
 
@@ -702,10 +677,43 @@ class Client():
 
 		"""
 		if comId!=None:
-			response = self.session.get(f"{self.api}/x{comId}/s/user-profile/{self.uid}", headers=self.headers(), proxies=self.proxies)
+			response = self.session.get(f"{self.api}/x{comId}/s/user-profile/{self.uid}", headers=self.parser(), proxies=self.proxies)
 			if response.status_code != 200: return exceptions.checkExceptions(json.loads(response.text))
 			else: return json.loads(response.text)["userProfile"]
 
-		response = self.session.get(f"{self.api}/g/s/user-profile/{userId}", headers=self.headers(), proxies=self.proxies)
+		response = self.session.get(f"{self.api}/g/s/user-profile/{userId}", headers=self.parser(), proxies=self.proxies)
 		if response.status_code != 200: return exceptions.checkExceptions(json.loads(response.text))
 		else: return json.loads(response.text)["userProfile"]
+
+
+
+
+	"""
+
+				█░█░█ █ █▄▀ █   ▄▀█ █▄░█ █▀▄   █▄▄ █░░ █▀█ █▀▀   █▀█ █▀█ █▀ ▀█▀ █▀
+				▀▄▀▄▀ █ █░█ █   █▀█ █░▀█ █▄▀   █▄█ █▄▄ █▄█ █▄█   █▀▀ █▄█ ▄█ ░█░ ▄█
+	"""
+
+	def post_wiki(self, comId: str, title: str, content: str, icon: str = None, imageList: list = None, keywords: str = None, backgroundColor: str = None, fansOnly: bool = False):
+		mediaList = []
+		if imageList!=None:
+			for image in imageList:
+				mediaList.append([100, self.upload_media(image, "image"), None])
+
+		data = {
+			"label": title,
+			"content": content,
+			"mediaList": mediaList,
+			"eventSource": "GlobalComposeMenu",
+			"timestamp": int(timestamp() * 1000)
+		}
+
+		if icon: data["icon"] = icon
+		if keywords: data["keywords"] = keywords
+		if fansOnly: data["extensions"] = {"fansOnly": fansOnly}
+		if backgroundColor: data["extensions"] = {"style": {"backgroundColor": backgroundColor}}
+		data = json.dumps(data)
+
+		response = self.session.post(f"{self.api}/x{comId}/s/item", headers=self.parser(data=data), data=data, proxies=self.proxies)
+		if response.status_code != 200: return exceptions.checkExceptions(json.loads(response.text))
+		else: return response.status_code

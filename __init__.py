@@ -7,7 +7,7 @@ Enjoy using!
 
 from os import system as s
 from .client import Client
-from .lib.util import generator, helpers, exceptions
+from .lib.util import generator, helpers, exceptions, headers
 from colored import fore
 from json import loads
 from requests import get
@@ -15,7 +15,7 @@ __title__ = 'AminoXZ'
 __author__ = 'Xsarz'
 __license__ = 'MIT'
 __copyright__ = 'Copyright 2022 Xsarz'
-__version__ = '1.1.3.2.3'
+__version__ = '1.1.3.3'
 __status__ = '(BETA)'
 
 def init():
