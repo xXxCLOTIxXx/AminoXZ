@@ -677,7 +677,7 @@ class Client():
 
 		"""
 		if comId!=None:
-			response = self.session.get(f"{self.api}/x{comId}/s/user-profile/{self.uid}", headers=self.parser(), proxies=self.proxies)
+			response = self.session.get(f"{self.api}/x{comId}/s/user-profile/{userId}", headers=self.parser(), proxies=self.proxies)
 			if response.status_code != 200: return exceptions.checkExceptions(json.loads(response.text))
 			else: return json.loads(response.text)["userProfile"]
 
