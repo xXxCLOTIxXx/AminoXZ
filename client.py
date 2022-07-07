@@ -3,7 +3,7 @@ import json
 from .lib.util.generator import Generator
 from .lib.util import exceptions, helpers, headers
 import requests
-from typing import BinaryIO
+from typing import BinaryIO, Union
 
 
 """
@@ -316,6 +316,36 @@ class Client():
 	"""
 
 
+	def start_chat(self, userId: Union[str, list], message: str, comId:str = None, title: str = None, content: str = None, isGlobal: bool = False, publishToGlobal: bool = False):
+		if isinstance(userId, str): userIds = [userId]
+		elif isinstance(userId, list): userIds = userId
+		else: raise exceptions.WrongType(type(userId))
+
+		data = {
+			"title": title,
+			"inviteeUids": userIds,
+			"initialMessageContent": message,
+			"content": content,
+			"timestamp": int(timestamp() * 1000)
+		}
+
+		if isGlobal == True:
+			data["type"] = 2
+			data["eventSource"] = "GlobalComposeMenu"
+		else:data["type"] = 0
+
+		if publishToGlobal == True:data["publishToGlobal"] = 1
+		else:data["publishToGlobal"] = 0
+
+		data = json.dumps(data)
+
+		if comId!=None:response = self.session.post(f"{self.api}/x{comId}/s/chat/thread", data=data, headers=self.parser(data=data), proxies=self.proxies)
+		else:response = self.session.post(f"{self.api}/g/s/chat/thread", data=data, headers=self.parser(data=data), proxies=self.proxies)
+		if response.status_code != 200: return exceptions.checkExceptions(json.loads(response.text))
+		else: return json.loads(response.text)["thread"]
+
+
+
 	def send_message_web(self, chatId: str, comId: str, message: str, messageType: int = 0):
 
 		"""
@@ -556,38 +586,6 @@ class Client():
 		else: return json.loads(response.text)["memberList"]
 
 
-
-
-	def get_community_members(self, comId: str,  type: str = "recent", start: int = 0, size: int = 25):
-
-		"""
-		Get chat members
-		** options **
-
-		- *start* : Where to start the list.
-		- *size* : The size of the list.
-		- *comId*: community id (if chat in community)
-		- *type*: type of participants 
-		
-		=-types-=
-		recent - recent members
-		online - online users 
-		banned - banned users
-		featured - featured members
-		leaders - leaders
-		curators - curators
-
-		"""
-		if type == "recent": response = self.session.get(f"{self.api}/x{comId}/s/user-profile?type=recent&start={start}&size={size}", headers=self.parser(), proxies=self.proxies)
-		elif type == 'online': response = self.session.get(f"{self.api}/x{comId}/s/live-layer?topic=ndtopic:x{comId}:online-members&start={start}&size={size}", headers=self.parser(), proxies=self.proxies)
-		elif type == "banned": response = self.session.get(f"{self.api}/x{comId}/s/user-profile?type=banned&start={start}&size={size}", headers=self.parser(), proxies=self.proxies)
-		elif type == "featured": response = self.session.get(f"{self.api}/x{comId}/s/user-profile?type=featured&start={start}&size={size}", headers=self.parser(), proxies=self.proxies)
-		elif type == "leaders": response = self.session.get(f"{self.api}/x{comId}/s/user-profile?type=leaders&start={start}&size={size}", headers=self.parser(), proxies=self.proxies)
-		elif type == "curators": response = self.session.get(f"{self.api}/x{comId}/s/user-profile?type=curators&start={start}&size={size}", headers=self.parser(), proxies=self.proxies)
-		if response.status_code != 200: return exceptions.checkExceptions(json.loads(response.text))
-		else: return json.loads(response.text)
-
-
 	def get_message_info(self, chatId: str, messageId: str): #do
 		"""
 		Message Information
@@ -622,6 +620,39 @@ class Client():
 		response = self.session.get(f"{self.api}/g/s-x{comId}/community/info?withInfluencerList=1&withTopicList=true&influencerListOrderStrategy=fansCount", headers=self.parser(), proxies=self.proxies)
 		if response.status_code != 200: return exceptions.checkExceptions(json.loads(response.text))
 		else: return json.loads(response.text)["community"]
+
+
+
+	def get_community_members(self, comId: str,  type: str = "recent", start: int = 0, size: int = 25):
+
+		"""
+		Get chat members
+		** options **
+
+		- *start* : Where to start the list.
+		- *size* : The size of the list.
+		- *comId*: community id (if chat in community)
+		- *type*: type of participants 
+		
+		=-types-=
+		recent - recent members
+		online - online users 
+		banned - banned users
+		featured - featured members
+		leaders - leaders
+		curators - curators
+
+		"""
+		if type == "recent": response = self.session.get(f"{self.api}/x{comId}/s/user-profile?type=recent&start={start}&size={size}", headers=self.parser(), proxies=self.proxies)
+		elif type == 'online': response = self.session.get(f"{self.api}/x{comId}/s/live-layer?topic=ndtopic:x{comId}:online-members&start={start}&size={size}", headers=self.parser(), proxies=self.proxies)
+		elif type == "banned": response = self.session.get(f"{self.api}/x{comId}/s/user-profile?type=banned&start={start}&size={size}", headers=self.parser(), proxies=self.proxies)
+		elif type == "featured": response = self.session.get(f"{self.api}/x{comId}/s/user-profile?type=featured&start={start}&size={size}", headers=self.parser(), proxies=self.proxies)
+		elif type == "leaders": response = self.session.get(f"{self.api}/x{comId}/s/user-profile?type=leaders&start={start}&size={size}", headers=self.parser(), proxies=self.proxies)
+		elif type == "curators": response = self.session.get(f"{self.api}/x{comId}/s/user-profile?type=curators&start={start}&size={size}", headers=self.parser(), proxies=self.proxies)
+		if response.status_code != 200: return exceptions.checkExceptions(json.loads(response.text))
+		else: return json.loads(response.text)
+
+
 
 	def get_my_communities(self, start: int = 0, size: int = 25):
 
