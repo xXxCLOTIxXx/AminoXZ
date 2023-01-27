@@ -1,10 +1,11 @@
 from time import sleep, time
-from json import loads
+from json import loads, dumps
 from websocket import WebSocketApp, enableTrace
 from threading import Thread
 from sys import _getframe as getframe
 from .lib.util import objects
 from .lib.util.generator import Generator
+from random import randint
 
 class SocketHandler:
 	def __init__(self, client, sock_trace = False, debug = False):
@@ -16,6 +17,7 @@ class SocketHandler:
 		self.socket = None
 		self.socket_thread = None
 		self.reconnectTime = 160
+		self.pingTime = 10
 		self.socket_thread = None
 		self.generator = Generator()
 
@@ -53,6 +55,16 @@ class SocketHandler:
 			sleep(5)
 
 		self.socket.send(data)
+
+	def _online_loop(self):
+		while True:
+			sleep(self.pingTime)
+			data =  dumps({
+				"t": 116,
+				"o": {"threadChannelUserInfoList": [], 'id': str(randint(1, 1000000))},
+			})
+			self.send(data)
+
 
 	def run_amino_socket(self):
 		try:

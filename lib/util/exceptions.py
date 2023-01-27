@@ -160,6 +160,11 @@ class CapchaNotRecognize(Exception):
 		Exception.__init__(*args, **kwargs)
 
 
+class WrongType(Exception):
+	def __init__(*args, **kwargs):
+		Exception.__init__(*args, **kwargs)
+
+
 def checkExceptions(data = None, local: dict = None):
 	local_code = None
 	code = None
