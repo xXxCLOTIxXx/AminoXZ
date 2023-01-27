@@ -1,3 +1,4 @@
+import json
 
 class UnsupportedService(Exception):
 	def __init__(*args, **kwargs):
@@ -135,12 +136,43 @@ class UserBannedByTeamAmino(Exception):
 	def __init__(*args, **kwargs):
 		Exception.__init__(*args, **kwargs)
 
-class SpecifyType(Exception):
+class IpTemporaryBan(Exception):
 	def __init__(*args, **kwargs):
 		Exception.__init__(*args, **kwargs)
 
-def checkExceptions(data):
-	code = data["api:statuscode"]
+class UnknownError(Exception):
+	def __init__(*args, **kwargs):
+		Exception.__init__(*args, **kwargs)
+
+
+
+class IncorrectType(Exception):
+	def __init__(*args, **kwargs):
+		Exception.__init__(*args, **kwargs)
+
+class NotAuthorized(Exception):
+	def __init__(*args, **kwargs):
+		Exception.__init__(*args, **kwargs)
+
+
+class CapchaNotRecognize(Exception):
+	def __init__(*args, **kwargs):
+		Exception.__init__(*args, **kwargs)
+
+
+def checkExceptions(data = None, local: dict = None):
+	local_code = None
+	code = None
+	if local:local_code = local['code']
+	if data:
+		try:
+			data = json.loads(data)
+			try:code = data["api:statuscode"]
+			except:raise UnknownError(data)
+		except json.decoder.JSONDecodeError:code = 403
+
+
+
 
 	if code == 100: raise UnsupportedService(data)
 	elif code == 103 or code == 104: raise InvalidRequest(data)
@@ -172,4 +204,6 @@ def checkExceptions(data):
 	elif code == 271: raise API_ERR_INVALID_AUTH_NEW_DEVICE_LINK(data)
 	elif code == 291: raise CommandCooldown(data)
 	elif code == 293: raise UserBannedByTeamAmino(data)
-	else: raise Exception(data)
+
+	elif local_code == 1: raise IncorrectType(local['text'])
+	elif local_code == 2: raise NotAuthorized(local['text'])

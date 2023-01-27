@@ -1,30 +1,58 @@
 from typing import Union
 from hmac import new
 from hashlib import sha1
-from base64 import b64encode
+from base64 import b64encode, urlsafe_b64decode
 import json
+from typing import Union
+from os import urandom
 
-from .helpers import generate_device_info
 
-class Generator():
-	PREFIX = bytes.fromhex("42")
-	SIG_KEY = bytes.fromhex("F8E7A61AC3F725941E3AC7CAE2D688BE97F30B93")
-	DEVICE_KEY = bytes.fromhex("02B258C63559D8804321C5D5065AF320358D366F")
-	def deviceId(self):
+
+class Generator:
+	def __init__(self):
+		self.PREFIX = bytes.fromhex("19")
+		self.SIG_KEY = bytes.fromhex("DFA5ED192DDA6E88A12FE12130DC6206B1251E44")
+		self.DEVICE_KEY = bytes.fromhex("E7309ECC0953C6FA60005B2765F99DBBC965C8E9")
+
+
+	def signature(self, data: Union[str, bytes]):
+		data = data if isinstance(data, bytes) else data.encode("utf-8")
+		return b64encode(self.PREFIX + new(self.SIG_KEY, data, sha1).digest()).decode("utf-8")
+
+
+	def generateDeviceId(self):
+		ur = self.PREFIX + (urandom(20))
+		mac = new(self.DEVICE_KEY, ur, sha1)
+		return f"{ur.hex()}{mac.hexdigest()}".upper()
+
+
+
+	def generate_device_info(self):
+		return {
+			"device_id": self.generateDeviceId(),
+			"user_agent": "Apple iPhone12,1 iOS v15.5 Main/3.12.2"
+		}
+
+
+	def getDeviceId(self):
 		try:
 			with open("device.json", "r") as stream:
 				data = json.load(stream)
 		except (FileNotFoundError, json.decoder.JSONDecodeError):
-			device = generate_device_info()
+			device = self.generate_device_info()
 			with open("device.json", "w") as stream:
 				json.dump(device, stream, indent=4)
 			with open("device.json", "r") as stream:
 				data = json.load(stream)
 		return data
 
+	#from amino.py
+	def decode_sid(self, SID: str) -> dict:return json.loads(urlsafe_b64decode(SID + "=" * (4 - len(SID) % 4))[1:-20])
 
-	def signature(self, data) -> str:
-		try: dt = data.encode("utf-8")
-		except Exception: dt = data
-		mac = new(bytes.fromhex("F8E7A61AC3F725941E3AC7CAE2D688BE97F30B93"), dt, sha1)
-		return b64encode(bytes.fromhex("42") + mac.digest()).decode("utf-8")
+	def sid_to_uid(self, SID: str) -> str: return self.decode_sid(SID)["2"]
+
+	def sid_to_ip_address(self, SID: str) -> str: return self.decode_sid(SID)["4"]
+
+	def sid_created_time(self, SID: str) -> str: return self.decode_sid(SID)["5"]
+
+	def sid_to_client_type(self, SID: str) -> str: return self.decode_sid(SID)["6"]
