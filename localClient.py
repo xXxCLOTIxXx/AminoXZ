@@ -10,8 +10,9 @@ import requests
 import json
 import base64
 
-from typing import BinaryIO
+from typing import BinaryIO, Union
 from time import time as timestamp
+from threading import Thread
 
 class LocalClient(client.Client):
 	def __init__(self, comId: str, profile: objects.UserProfile, deviceId: str = None):
@@ -194,3 +195,47 @@ class LocalClient(client.Client):
 		response = self.session.get(f"{self.api}/x{self.comId}/s/chat/thread/{chatId}/message/{messageId}", headers=self.parse_headers(), proxies=self.proxies, verify=self.certificatePath)
 		if response.status_code != 200: return exceptions.checkExceptions(response.text)
 		else: return objects.Message(json.loads(response.text)["message"]).Message
+
+	#need fix :(
+	def create_chat(self, userId: Union[str, list], message: str, title: str = None, content: str = None, isGlobal: bool = False, publishToGlobal: bool = False):
+		if isinstance(userId, str): userIds = [userId]
+		elif isinstance(userId, list): userIds = userId
+		else: raise exceptions.WrongType(type(userId))
+
+		data = {
+			"title": title,
+			"inviteeUids": userIds,
+			"initialMessageContent": message,
+			"content": content,
+			"timestamp": int(timestamp() * 1000)
+		}
+
+		if isGlobal is True: data["type"] = 2; data["eventSource"] = "GlobalComposeMenu"
+		else: data["type"] = 0
+
+		if publishToGlobal is True: data["publishToGlobal"] = 1
+		else: data["publishToGlobal"] = 0
+
+		data = json.dumps(data)
+		
+		response = self.session.post(f"{self.api}/x{self.comId}/s/chat/thread", data=data, headers=self.parse_headers(data=data), proxies=self.proxies, verify=self.certificatePath)
+		if response.status_code != 200: return exceptions.checkExceptions(response.text)
+		else: return objects.Thread(json.loads(response.text)["thread"]).Thread
+
+
+	def follow(self, userId: Union[str, list]):
+
+		if isinstance(userId, str):
+			response = self.session.post(f"{self.api}/x{self.comId}/s/user-profile/{userId}/member", headers=self.parse_headers(type='android'), proxies=self.proxies, verify=self.certificatePath)
+		elif isinstance(userId, list):
+			data = json.dumps({"targetUidList": userId, "timestamp": int(timestamp() * 1000)})
+			response = self.session.post(f"{self.api}/x{self.comId}/s/user-profile/{self.profile.userId}/joined", headers=self.parse_headers(data=data), data=data, proxies=self.proxies, verify=self.certificatePath)
+		else: raise exceptions.WrongType(type(userId))
+		if response.status_code != 200: return exceptions.checkExceptions(response.text)
+		else: return response.status_code
+
+	def unfollow(self, userId: str):
+
+		response = self.session.delete(f"{self.api}/x{self.comId}/s/user-profile/{self.profile.userId}/joined/{userId}", headers=self.parse_headers(type='android'), proxies=self.proxies, verify=self.certificatePath)
+		if response.status_code != 200: return exceptions.checkExceptions(response.text)
+		else: return response.status_code

@@ -37,9 +37,11 @@ class Client(Callbacks, SocketHandler):
 		self.deviceId = deviceId if deviceId is not None else self.device["device_id"]
 
 
-	def parse_headers(self, data = None, content_type = None):
+	def parse_headers(self, data = None, content_type = None, type: str = 'iphone'):
 		headers = Headers(deviceId=self.deviceId, sid=self.sid)
-		return headers.iphone_headers(data, content_type)
+		if type == 'iphone':return headers.iphone_headers(data, content_type)
+		elif type == 'android':return headers.android_headers(data, content_type)
+		else: raise exceptions.WrongType(fileType)
 
 
 	def upload_media(self, file: BinaryIO, fileType: str):
@@ -119,7 +121,7 @@ class Client(Callbacks, SocketHandler):
 			if self.socket_enabled:
 				self.run_amino_socket()
 
-		else:exceptions.checkExceptions(local={'code': 1, 'text': 'Incorrect login type.'})
+		else:exceptions.checkExceptions(response.text)
 
 
 
@@ -131,7 +133,7 @@ class Client(Callbacks, SocketHandler):
 		"timestamp": int(timestamp() * 1000)
 		})
 		response = self.session.post(f"{self.api}/g/s/auth/logout", headers=self.parse_headers(data=data), data=data, proxies=self.proxies, verify=self.certificatePath)
-		if response.status_code != 200:exceptions.CheckException(response.text)
+		if response.status_code != 200:exceptions.checkExceptions(response.text)
 		else:
 			self.sid = None
 			self.uid = None
@@ -142,14 +144,59 @@ class Client(Callbacks, SocketHandler):
 		return response.status_code
 
 
+	def register(self, nickname: str, email: str, password: str, verificationCode: str, deviceId: str):
+
+		data = json.dumps({
+			"secret": f"0 {password}",
+			"deviceID": deviceId,
+			"email": email,
+			"clientType": 100,
+			"nickname": nickname,
+			"latitude": 0,
+			"longitude": 0,
+			"address": None,
+			"clientCallbackURL": "narviiapp://relogin",
+			"validationContext": {
+				"data": {"code": verificationCode},
+				"type": 1,
+				"identity": email
+			},
+			"type": 1,
+			"identity": email,
+			"timestamp": int(timestamp() * 1000)
+		})
+
+		response = self.session.post(f"{self.api}/g/s/auth/register", data=data, headers=self.parse_headers(data=data), proxies=self.proxies, verify=self.certificatePath)
+		return exceptions.checkExceptions(response.text) if response.status_code != 200 else response.status_code
+
+
+
+	def request_verify_code(self, email: str, resetPassword: bool = False):
+		
+		data = {
+			"identity": email,
+			"type": 1,
+			"deviceID": self.deviceId
+		}
+
+		if resetPassword is True:
+			data["level"] = 2
+			data["purpose"] = "reset-password"
+
+		data = json.dumps(data)
+		response = self.session.post(f"{self.api}/g/s/auth/request-security-validation", headers=self.parse_headers(data=data), data=data, proxies=self.proxies, verify=self.certificatePath)
+		return exceptions.checkExceptions(response.text) if response.status_code != 200 else response.status_code
+
+
+
+
+
 	def get_my_communities(self, start: int = 0, size: int = 10):
 
 		if not self.auth: exceptions.checkExceptions(local={'code': 1, 'text': 'You are not logged in.'})
 		response = self.session.get(f"{self.api}/g/s/community/joined?v=1&start={start}&size={size}", headers=self.parse_headers(), proxies=self.proxies, verify=self.certificatePath)
 		if response.status_code != 200: return exceptions.CheckException(response.text)
 		else: return objects.CommunityList(json.loads(response.text)["communityList"])
-
-
 
 
 	def get_account_info(self):

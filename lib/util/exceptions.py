@@ -164,6 +164,15 @@ class WrongType(Exception):
 	def __init__(*args, **kwargs):
 		Exception.__init__(*args, **kwargs)
 
+class InternalServerError(Exception):
+	def __init__(*args, **kwargs):
+		Exception.__init__(*args, **kwargs)
+
+class InvalidVerificationCode(Exception):
+	def __init__(*args, **kwargs):
+		Exception.__init__(*args, **kwargs)
+
+
 
 def checkExceptions(data = None, local: dict = None):
 	local_code = None
@@ -180,6 +189,7 @@ def checkExceptions(data = None, local: dict = None):
 
 
 	if code == 100: raise UnsupportedService(data)
+	elif code == 101: raise InternalServerError(data)
 	elif code == 103 or code == 104: raise InvalidRequest(data)
 	elif code == 105: raise InvalidSession(data)
 	elif code == 106: raise AccessDenied(data)
@@ -209,6 +219,8 @@ def checkExceptions(data = None, local: dict = None):
 	elif code == 271: raise API_ERR_INVALID_AUTH_NEW_DEVICE_LINK(data)
 	elif code == 291: raise CommandCooldown(data)
 	elif code == 293: raise UserBannedByTeamAmino(data)
+	elif code == 3102: raise InvalidVerificationCode(data)
 
 	elif local_code == 1: raise IncorrectType(local['text'])
 	elif local_code == 2: raise NotAuthorized(local['text'])
+	else: raise UnknownError(data)

@@ -30,7 +30,8 @@ class Generator:
 	def generate_device_info(self):
 		return {
 			"device_id": self.generateDeviceId(),
-			"user_agent": "Apple iPhone12,1 iOS v15.5 Main/3.12.2"
+			"iphone_user_agent": "Apple iPhone12,1 iOS v15.5 Main/3.12.2",
+			'android_user_agent': 'Dalvik/2.1.0 (Linux; U; Android 7.1.2; SM-G965N Build/star2ltexx-user 7.1.; com.narvii.amino.master/3.4.33602)'
 		}
 
 
