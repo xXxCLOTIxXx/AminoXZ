@@ -19,6 +19,7 @@ class SocketHandler:
 		self.reconnectTime = 160
 		self.pingTime = 10
 		self.socket_thread = None
+		self.online_run = False
 		self.generator = Generator()
 
 		if self.socket_enabled:
@@ -55,15 +56,6 @@ class SocketHandler:
 			sleep(5)
 
 		self.socket.send(data)
-
-	def _online_loop(self):
-		while True:
-			sleep(self.pingTime)
-			data =  dumps({
-				"t": 116,
-				"o": {"threadChannelUserInfoList": [], 'id': str(randint(1, 1000000))},
-			})
-			self.send(data)
 
 
 	def run_amino_socket(self):

@@ -13,6 +13,8 @@ import base64
 from typing import BinaryIO, Union
 from time import time as timestamp
 from threading import Thread
+from time import sleep
+from random import randint
 
 class LocalClient(client.Client):
 	def __init__(self, comId: str, profile: objects.UserProfile, deviceId: str = None):
@@ -20,7 +22,26 @@ class LocalClient(client.Client):
 		self.comId = comId
 		self.profile = profile
 		self.sid = profile.sid
+		self.online_running = False
 
+	def _online_loop(self):
+		while self.online_running:
+			data =  json.dumps({
+				"t": 304,
+				"o": {"actions": ["Browsing"], "target":f"ndc://x{self.comId}/", "ndcId":self.comId,'id': str(randint(1, 1000000))},
+			})
+			self.send(data)
+			sleep(self.pingTime)
+
+
+	def Online(self):
+		if not self.online_running:
+			self.online_running=True
+			Thread(target=self._online_loop).start()
+
+	def Offline(self):
+		if self.online_running:
+			self.online_running=False
 
 	def get_my_chats(self, start: int = 0, size: int = 10):
 
@@ -196,7 +217,7 @@ class LocalClient(client.Client):
 		if response.status_code != 200: return exceptions.checkExceptions(response.text)
 		else: return objects.Message(json.loads(response.text)["message"]).Message
 
-	#need fix :(
+
 	def create_chat(self, userId: Union[str, list], message: str, title: str = None, content: str = None, isGlobal: bool = False, publishToGlobal: bool = False):
 		if isinstance(userId, str): userIds = [userId]
 		elif isinstance(userId, list): userIds = userId
@@ -224,9 +245,10 @@ class LocalClient(client.Client):
 
 
 	def follow(self, userId: Union[str, list]):
+		#need fix :(
 
 		if isinstance(userId, str):
-			response = self.session.post(f"{self.api}/x{self.comId}/s/user-profile/{userId}/member", headers=self.parse_headers(type='android'), proxies=self.proxies, verify=self.certificatePath)
+			response = self.session.post(f"{self.api}/x{self.comId}/s/user-profile/{userId}/member", headers=self.parse_headers(), proxies=self.proxies, verify=self.certificatePath)
 		elif isinstance(userId, list):
 			data = json.dumps({"targetUidList": userId, "timestamp": int(timestamp() * 1000)})
 			response = self.session.post(f"{self.api}/x{self.comId}/s/user-profile/{self.profile.userId}/joined", headers=self.parse_headers(data=data), data=data, proxies=self.proxies, verify=self.certificatePath)
@@ -235,7 +257,47 @@ class LocalClient(client.Client):
 		else: return response.status_code
 
 	def unfollow(self, userId: str):
+		#need fix :(
 
-		response = self.session.delete(f"{self.api}/x{self.comId}/s/user-profile/{self.profile.userId}/joined/{userId}", headers=self.parse_headers(type='android'), proxies=self.proxies, verify=self.certificatePath)
+		response = self.session.delete(f"{self.api}/x{self.comId}/s/user-profile/{self.profile.userId}/joined/{userId}", headers=self.parse_headers(), proxies=self.proxies, verify=self.certificatePath)
+		if response.status_code != 200: return exceptions.checkExceptions(response.text)
+		else: return response.status_code
+
+	def edit_profile(self, nickname: str = None, content: str = None, icon: BinaryIO = None, chatRequestPrivilege: str = None, imageList: list = None, captionList: list = None, backgroundImage: str = None, backgroundColor: str = None, titles: list = None, colors: list = None, defaultBubbleId: str = None):
+		mediaList = []
+
+		data = {"timestamp": int(timestamp() * 1000)}
+
+		if captionList is not None:
+			for image, caption in zip(imageList, captionList):
+				mediaList.append([100, self.upload_media(image, "image"), caption])
+
+		else:
+			if imageList is not None:
+				for image in imageList:
+					mediaList.append([100, self.upload_media(image, "image"), None])
+
+		if imageList is not None or captionList is not None:
+			data["mediaList"] = mediaList
+
+		if nickname: data["nickname"] = nickname
+		if icon: data["icon"] = self.upload_media(icon, "image")
+		if content: data["content"] = content
+
+		if chatRequestPrivilege: data["extensions"] = {"privilegeOfChatInviteRequest": chatRequestPrivilege}
+		if backgroundImage: data["extensions"] = {"style": {"backgroundMediaList": [[100, backgroundImage, None, None, None]]}}
+		if backgroundColor: data["extensions"] = {"style": {"backgroundColor": backgroundColor}}
+		if defaultBubbleId: data["extensions"] = {"defaultBubbleId": defaultBubbleId}
+
+		if titles or colors:
+			tlt = []
+			for titles, colors in zip(titles, colors):
+				tlt.append({"title": titles, "color": colors})
+
+			data["extensions"] = {"customTitles": tlt}
+
+		data = json.dumps(data)
+		
+		response = self.session.post(f"{self.api}/x{self.comId}/s/user-profile/{self.profile.userId}", headers=self.parse_headers(data=data), data=data, proxies=self.proxies, verify=self.certificatePath)
 		if response.status_code != 200: return exceptions.checkExceptions(response.text)
 		else: return response.status_code

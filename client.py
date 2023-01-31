@@ -57,11 +57,6 @@ class Client(Callbacks, SocketHandler):
 		if response.status_code != 200: return exceptions.CheckException(json.loads(response.text))
 		else: return json.loads(response.text)["mediaValue"]
 
-
-	def Online(self):
-		#don't work
-		Thread(target=self._online_loop).start()
-
 	def login(self, password: str, email: str = None, number: str = None, sid: str = None, secret: str = None):
 
 		if email:
@@ -240,10 +235,10 @@ class Client(Callbacks, SocketHandler):
 
 	def auto_capcha(self, image_link: str):
 
-		data = json.dumps({'link': image_link})
-		response = self.session.post(f'https://amino-tools.herokuapp.com/getCapcha-apiV1', data=data).json()
-		if response['api-code'] != 200:raise exceptions.CapchaNotRecognize(response)
-		else: return response
+		data = {"url": image_link}
+		response = self.session.post("https://captcha-solver-iukzq.run-eu-central1.goorm.app/predict", json=data)
+		if response.status_code != 200:raise exceptions.CapchaNotRecognize(response)
+		else: return response.json()
 
 
 	def join_community(self, comId: str, invitationId: str = None):
@@ -254,3 +249,24 @@ class Client(Callbacks, SocketHandler):
 		response = self.session.post(f"{self.api}/x{comId}/s/community/join", data=data, headers=self.parse_headers(data=data), proxies=self.proxies, verify=self.certificatePath)
 		if response.status_code != 200: return exceptions.checkExceptions(response.text)
 		else: response.status_code
+
+	def leave_community(self, comId: str):
+
+		response = self.session.post(f"{self.api}/x{comId}/s/community/leave", headers=self.parse_headers(), proxies=self.proxies, verify=self.certificatePath)
+		if response.status_code != 200: return exceptions.checkExceptions(response.text)
+		else:return response.status_code
+
+
+	def get_all_users(self, start: int = 0, size: int = 25):
+
+		response = self.session.get(f"{self.api}/g/s/user-profile?type=recent&start={start}&size={size}", headers=self.parse_headers(), proxies=self.proxies, verify=self.certificatePath)
+		if response.status_code != 200: return exceptions.checkExceptions(response.text)
+		else:return objects.UserProfileCountList(json.loads(response.text)).UserProfileCountList
+
+
+
+	def get_public_communities(self, language: str = "en", size: int = 25):
+
+		response = requests.get(f"{self.api}/g/s/topic/0/feed/community?language={language}&type=web-explore&categoryKey=recommendation&size={size}&pagingType=t", headers=self.parse_headers())
+		if response.status_code != 200: return exceptions.checkExceptions(response.text)
+		else:return objects.CommunityList(json.loads(response.text)["communityList"]).CommunityList
