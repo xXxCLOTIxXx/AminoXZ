@@ -1,5 +1,4 @@
-# You don't even know how long this shit took...
-# F*ck you Sand for making me do this.
+#from aminofix
 
 class Objects:
     class Users:

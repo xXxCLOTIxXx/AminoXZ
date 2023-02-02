@@ -16,6 +16,11 @@ from threading import Thread
 from time import sleep
 from random import randint
 
+
+from uuid import UUID
+from os import urandom
+from binascii import hexlify
+
 class LocalClient(client.Client):
 	def __init__(self, comId: str, profile: objects.UserProfile, deviceId: str = None):
 		client.Client.__init__(self, deviceId=deviceId)
@@ -301,3 +306,124 @@ class LocalClient(client.Client):
 		response = self.session.post(f"{self.api}/x{self.comId}/s/user-profile/{self.profile.userId}", headers=self.parse_headers(data=data), data=data, proxies=self.proxies, verify=self.certificatePath)
 		if response.status_code != 200: return exceptions.checkExceptions(response.text)
 		else: return response.status_code
+
+
+
+	def comment(self, message: str, userId: str = None, blogId: str = None, wikiId: str = None, replyTo: str = None, isGuest: bool = False):
+		data = {
+			"content": message,
+			"stickerId": None,
+			"type": 0,
+			"timestamp": int(timestamp() * 1000)
+		}
+
+		if replyTo: data["respondTo"] = replyTo
+		if isGuest: comType = "g-comment"
+		else: comType = "comment"
+		if userId:
+			data["eventSource"] = "UserProfileView"
+			data = json.dumps(data)
+			
+			response = self.session.post(f"{self.api}/x{self.comId}/s/user-profile/{userId}/{comType}", headers=self.parse_headers(data=data), data=data, proxies=self.proxies, verify=self.certificatePath)
+
+		elif blogId:
+			data["eventSource"] = "PostDetailView"
+			data = json.dumps(data)
+			
+			response = self.session.post(f"{self.api}/x{self.comId}/s/blog/{blogId}/{comType}", headers=self.parse_headers(data=data), data=data, proxies=self.proxies, verify=self.certificatePath)
+
+		elif wikiId:
+			data["eventSource"] = "PostDetailView"
+			data = json.dumps(data)
+			
+			response = self.session.post(f"{self.api}/x{self.comId}/s/item/{wikiId}/{comType}", headers=self.parse_headers(data=data), data=data, proxies=self.proxies, verify=self.certificatePath)
+
+		else: raise exceptions.WrongType()
+		if response.status_code != 200: return exceptions.checkExceptions(response.text)
+		else: return response.status_code
+
+
+	def get_recent_blogs(self, pageToken: str = None, start: int = 0, size: int = 25):
+		if pageToken is not None: url = f"{self.api}/x{self.comId}/s/feed/blog-all?pagingType=t&pageToken={pageToken}&size={size}"
+		else: url = f"{self.api}/x{self.comId}/s/feed/blog-all?pagingType=t&start={start}&size={size}"
+
+		response = self.session.get(url, headers=self.parse_headers(), proxies=self.proxies, verify=self.certificatePath)
+		if response.status_code != 200: return exceptions.checkExceptions(response.text)
+		else: return objects.RecentBlogs(json.loads(response.text)).RecentBlogs
+
+
+
+	def ban(self, userId: str, reason: str, banType: int = None):
+		data = json.dumps({
+			"reasonType": banType,
+			"note": {
+				"content": reason
+			},
+			"timestamp": int(timestamp() * 1000)
+		})
+
+		response = self.session.post(f"{self.api}/x{self.comId}/s/user-profile/{userId}/ban", headers=self.parse_headers(data=data), data=data, proxies=self.proxies, verify=self.certificatePath)
+		if response.status_code != 200: return exceptions.checkExceptions(response.text)
+		else: return json.loads(response.text)
+
+	def unban(self, userId: str, reason: str):
+		data = json.dumps({
+			"note": {
+				"content": reason
+			},
+			"timestamp": int(timestamp() * 1000)
+		})
+
+		response = self.session.post(f"{self.api}/x{self.comId}/s/user-profile/{userId}/unban", headers=self.parse_headers(data=data), data=data, proxies=self.proxies, verify=self.certificatePath)
+		if response.status_code != 200: return exceptions.checkExceptions(response.text)
+		else: return json.loads(response.text)
+
+
+	def kick(self, userId: str, chatId: str, allowRejoin: bool = True):
+		if allowRejoin: allowRejoin = 1
+		if not allowRejoin: allowRejoin = 0
+		response = self.session.delete(f"{self.api}/x{self.comId}/s/chat/thread/{chatId}/member/{userId}?allowRejoin={allowRejoin}", headers=self.parse_headers(), proxies=self.proxies, verify=self.certificatePath)
+		if response.status_code != 200: return exceptions.checkExceptions(response.text)
+		else: return response.status_code
+
+
+	def send_coins(self, coins: int, blogId: str = None, chatId: str = None, objectId: str = None, transactionId: str = None):
+		url = None
+		if transactionId is None: transactionId = str(UUID(hexlify(urandom(16)).decode('ascii')))
+
+		data = {
+			"coins": coins,
+			"tippingContext": {"transactionId": transactionId},
+			"timestamp": int(timestamp() * 1000)
+		}
+
+		if blogId is not None: url = f"{self.api}/x{self.comId}/s/blog/{blogId}/tipping"
+		if chatId is not None: url = f"{self.api}/x{self.comId}/s/chat/thread/{chatId}/tipping"
+		if objectId is not None:
+			data["objectId"] = objectId
+			data["objectType"] = 2
+			url = f"{self.api}/x{self.comId}/s/tipping"
+
+		if url is None: raise exceptions.WrongType()
+
+		data = json.dumps(data)
+		
+		response = self.session.post(url, headers=self.parse_headers(data=data), data=data, proxies=self.proxies, verify=self.certificatePath)
+		if response.status_code != 200: return exceptions.checkExceptions(response.text)
+		else: return response.status_code
+
+
+	def subscribe(self, userId: str, autoRenew: str = False, transactionId: str = None):
+		if transactionId is None: transactionId = str(UUID(hexlify(urandom(16)).decode('ascii')))
+
+		data = json.dumps({
+			"paymentContext": {
+				"transactionId": transactionId,
+				"isAutoRenew": autoRenew
+			},
+			"timestamp": int(timestamp() * 1000)
+		})
+		
+		response = self.session.post(f"{self.api}/x{self.comId}/s/influencer/{userId}/subscribe", headers=self.parse_headers(data=data), data=data, proxies=self.proxies, verify=self.certificatePath)
+		if response.status_code != 200:return exceptions.checkExceptions(response.text)
+		else:return response.status_code

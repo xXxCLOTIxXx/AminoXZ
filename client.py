@@ -251,10 +251,10 @@ class Client(Callbacks, SocketHandler):
 		else: response.status_code
 
 	def leave_community(self, comId: str):
+		data = json.dumps ({"timestamp": int(timestamp() * 1000)})
 
-		response = self.session.post(f"{self.api}/x{comId}/s/community/leave", headers=self.parse_headers(), proxies=self.proxies, verify=self.certificatePath)
-		if response.status_code != 200: return exceptions.checkExceptions(response.text)
-		else:return response.status_code
+		response = self.session.post(f"{self.api}/x{comId}/s/community/leave", data=data, headers=self.parse_headers(data=data), proxies=self.proxies, verify=self.certificatePath)
+		return exceptions.checkExceptions(json.loads(response.text)) if response.status_code != 200 else response.status_code
 
 
 	def get_all_users(self, start: int = 0, size: int = 25):
@@ -267,6 +267,12 @@ class Client(Callbacks, SocketHandler):
 
 	def get_public_communities(self, language: str = "en", size: int = 25):
 
-		response = requests.get(f"{self.api}/g/s/topic/0/feed/community?language={language}&type=web-explore&categoryKey=recommendation&size={size}&pagingType=t", headers=self.parse_headers())
+		response = requests.get(f"{self.api}/g/s/topic/0/feed/community?language={language}&type=web-explore&categoryKey=recommendation&size={size}&pagingType=t", headers=self.parse_headers(), proxies=self.proxies, verify=self.certificatePath)
 		if response.status_code != 200: return exceptions.checkExceptions(response.text)
 		else:return objects.CommunityList(json.loads(response.text)["communityList"]).CommunityList
+
+	def get_community_info(self, comId: str):
+
+		response = self.session.get(f"{self.api}/g/s-x{comId}/community/info?withInfluencerList=1&withTopicList=true&influencerListOrderStrategy=fansCount", headers=self.parse_headers(), proxies=self.proxies, verify=self.certificatePath)
+		if response.status_code != 200: return exceptions.checkExceptions(response.text)
+		else: return objects.Community(json.loads(response.text)["community"]).Community

@@ -140,6 +140,14 @@ class IpTemporaryBan(Exception):
 	def __init__(*args, **kwargs):
 		Exception.__init__(*args, **kwargs)
 
+class InvitesDisabled(Exception):
+	def __init__(*args, **kwargs):
+		Exception.__init__(*args, **kwargs)
+
+class InvalidLink(Exception):
+	def __init__(*args, **kwargs):
+		Exception.__init__(*args, **kwargs)
+
 class UnknownError(Exception):
 	def __init__(*args, **kwargs):
 		Exception.__init__(*args, **kwargs)
@@ -219,6 +227,9 @@ def checkExceptions(data = None, local: dict = None):
 	elif code == 271: raise API_ERR_INVALID_AUTH_NEW_DEVICE_LINK(data)
 	elif code == 291: raise CommandCooldown(data)
 	elif code == 293: raise UserBannedByTeamAmino(data)
+	elif code == 403: raise IpTemporaryBan(data)
+	elif code == 802: raise InvalidLink(data)
+	elif code == 1611: raise UserBannedByTeamAmino(data)
 	elif code == 3102: raise InvalidVerificationCode(data)
 
 	elif local_code == 1: raise IncorrectType(local['text'])
