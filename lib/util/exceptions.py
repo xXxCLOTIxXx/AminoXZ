@@ -152,6 +152,10 @@ class UnknownError(Exception):
 	def __init__(*args, **kwargs):
 		Exception.__init__(*args, **kwargs)
 
+class ChatsLimit(Exception):
+	def __init__(*args, **kwargs):
+		Exception.__init__(*args, **kwargs)
+
 
 
 class IncorrectType(Exception):
@@ -229,7 +233,8 @@ def checkExceptions(data = None, local: dict = None):
 	elif code == 293: raise UserBannedByTeamAmino(data)
 	elif code == 403: raise IpTemporaryBan(data)
 	elif code == 802: raise InvalidLink(data)
-	elif code == 1611: raise UserBannedByTeamAmino(data)
+	elif code == 1611: raise InvitesDisabled(data)
+	elif code == 1602: raise ChatsLimit(data)
 	elif code == 3102: raise InvalidVerificationCode(data)
 
 	elif local_code == 1: raise IncorrectType(local['text'])

@@ -37,10 +37,12 @@ class Client(Callbacks, SocketHandler):
 		self.deviceId = deviceId if deviceId is not None else self.device["device_id"]
 
 
-	def parse_headers(self, data = None, content_type = None, type: str = 'iphone'):
+	def parse_headers(self, data = None, content_type = None, type: str = 'iphone', referer: str = None):
 		headers = Headers(deviceId=self.deviceId, sid=self.sid)
 		if type == 'iphone':return headers.iphone_headers(data, content_type)
 		elif type == 'android':return headers.android_headers(data, content_type)
+		elif type == 'web':return headers.web_headers(referer=referer)
+		elif type == 'ios_web':return headers.iphoneWeb_headers()
 		else: raise exceptions.WrongType(fileType)
 
 
@@ -73,9 +75,8 @@ class Client(Callbacks, SocketHandler):
 				if response.status_code != 200: exceptions.checkExceptions(response.text)
 				else:json_response = json.loads(response.text)
 			self.sid = json_response["sid"]
-			self.uid = json_response["account"]["uid"]
 			self.auth = True
-			self.profile = objects.UserProfile(json_response["userProfile"])
+			self.profile = objects.UserProfile(json_response["userProfile"]).UserProfile
 			self.profile.sid = self.sid
 			if self.socket_enabled:
 				self.run_amino_socket()
@@ -97,9 +98,8 @@ class Client(Callbacks, SocketHandler):
 			if response.status_code != 200: return exceptions.checkExceptions(response.text)
 			else: json_response = json.loads(response.text)
 			self.sid = self.json_response["sid"]
-			self.uid = self.json_response["account"]["uid"]
 			self.auth = True
-			self.profile = objects.UserProfile(json_response["userProfile"])
+			self.profile = objects.UserProfile(json_response["userProfile"]).UserProfile
 			self.profile.sid = self.sid
 			if self.socket_enabled:
 				self.run_amino_socket()
@@ -109,12 +109,12 @@ class Client(Callbacks, SocketHandler):
 			uId = generator.sid_to_uid(sid)
 			self.authenticated = True
 			self.sid = sid
-			self.uid = uId
 			self.auth = True
-			self.profile = objects.UserProfile(json_response["userProfile"])
+			self.profile = objects.UserProfile({'uid': uId}).UserProfile
 			self.profile.sid = self.sid
 			if self.socket_enabled:
 				self.run_amino_socket()
+			return uId
 
 		else:exceptions.checkExceptions(response.text)
 
@@ -131,7 +131,6 @@ class Client(Callbacks, SocketHandler):
 		if response.status_code != 200:exceptions.checkExceptions(response.text)
 		else:
 			self.sid = None
-			self.uid = None
 			self.auth = False
 			self.profile = None
 			if self.socket_enabled:
@@ -204,7 +203,7 @@ class Client(Callbacks, SocketHandler):
 
 	def get_sid_info(self, sid: str):
 		
-		return {"sid": self.sid, "uid": self.uid, "ip_by_sid": generator.sid_to_ip_address(self.sid), "created_time": generator.sid_created_time(self.sid), "client_type": generator.sid_to_client_type(self.sid)}
+		return {"sid": self.sid, "uid": self.profile.userId, "ip_by_sid": generator.sid_to_ip_address(self.sid), "created_time": generator.sid_created_time(self.sid), "client_type": generator.sid_to_client_type(self.sid)}
 
 	def get_from_deviceid(self, deviceId: str):
 

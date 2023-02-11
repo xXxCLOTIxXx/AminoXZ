@@ -145,14 +145,41 @@ class LocalClient(client.Client):
 
 
 	def join_chat(self, chatId: str):
+		data = json.dumps({"timestamp": int(timestamp() * 1000)})
 
-		response = self.session.post(f"{self.api}/x{self.comId}/s/chat/thread/{chatId}/member/{self.uid}", headers=self.parse_headers(), proxies=self.proxies, verify=self.certificatePath)
-		if response.status_code != 200: return exceptions.checkExceptions(response.text)
+		response = self.session.post(f"{self.api}/x{self.comId}/s/chat/thread/{chatId}/member/{self.profile.userId}", data=data, headers=self.parse_headers(data=data), proxies=self.proxies, verify=self.certificatePath)
+		if response.status_code != 200: return exceptions.CheckExceptions(response.text)
 		else: return response.status_code
+
 
 	def leave_chat(self, chatId: str):
 
-		response = self.session.delete(f"{self.api}/x{self.comId}/s/chat/thread/{chatId}/member/{self.uid}", headers=self.parse_headers(), proxies=self.proxies, verify=self.certificatePath)
+		response = self.session.delete(f"{self.api}/x{self.comId}/s/chat/thread/{chatId}/member/{self.profile.userId}", headers=self.parse_headers(), proxies=self.proxies, verify=self.certificatePath)
+		if response.status_code != 200: return exceptions.checkExceptions(response.text)
+		else: return response.status_code
+
+
+
+	def join_chat_web(self, chatId: str):
+
+		data = {
+			"ndcId": f"x{self.comId}",
+			"threadId": chatId
+		}
+		data = json.dumps(data)
+		response = self.session.post(f"{self.web_api}/api/join-thread", headers=self.parse_headers(referer=f"https://aminoapps.com/partial/main-chat-window?ndcId={self.comId}", type='web'), data=data, proxies=self.proxies)
+		if response.status_code != 200: return exceptions.checkExceptions(response.text)
+		else: return response.status_code
+
+
+	def leave_chat_web(self, chatId: str):
+
+		data = {
+			"ndcId": f"x{self.comId}",
+			"threadId": chatId
+		}
+		data = json.dumps(data)
+		response = self.session.post(f"{self.web_api}/leave-thread", headers=self.parse_headers(referer=f"https://aminoapps.com/partial/main-chat-window?ndcId={self.comId}", type='web'), data=data, proxies=self.proxies)
 		if response.status_code != 200: return exceptions.checkExceptions(response.text)
 		else: return response.status_code
 

@@ -59,5 +59,13 @@ class Headers:
 	def iphoneWeb_headers(self):
 		return None
 
-	def web_headers(self):
-		return None
+	def web_headers(self, referer: str):
+		headers = {
+			"user-agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Ubuntu Chromium/73.0.3683.86 Chrome/73.0.3683.86 Safari/537.36",
+			"content-type": "application/json",
+			"x-requested-with": "xmlhttprequest",
+			"cookie": f"sid={self.sid}",
+			"referer": referer
+		}
+
+		return headers
