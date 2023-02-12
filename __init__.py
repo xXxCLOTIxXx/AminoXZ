@@ -8,6 +8,7 @@ Enjoy using!
 from os import system as s
 from .client import Client
 from .localClient import LocalClient
+from .acm import ACM
 from .lib.util import generator, exceptions, headers
 from colored import fore
 from json import loads
@@ -17,7 +18,7 @@ __title__ = 'AminoXZ'
 __author__ = 'Xsarz'
 __license__ = 'MIT'
 __copyright__ = 'Copyright 2022-2023 Xsarz'
-__version__ = '1.1.8.6'
+__version__ = '1.1.8.7'
 __newest__ = loads(get("https://pypi.org/pypi/aminoxz/json").text)["info"]["version"]
 
 

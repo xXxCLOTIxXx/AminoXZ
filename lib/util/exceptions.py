@@ -156,7 +156,9 @@ class ChatsLimit(Exception):
 	def __init__(*args, **kwargs):
 		Exception.__init__(*args, **kwargs)
 
-
+class CommunityNeeded(Exception):
+	def __init__(*args, **kwargs):
+		Exception.__init__(*args, **kwargs)
 
 class IncorrectType(Exception):
 	def __init__(*args, **kwargs):

@@ -30,11 +30,20 @@ class Client(Callbacks, SocketHandler):
 		SocketHandler.__init__(self, self, sock_trace=sock_trace, debug=sock_debug)
 		Callbacks.__init__(self, self)
 
-		self.uid = None
 		self.sid = None
 		self.auth = False
 		self.profile = objects.UserProfile
 		self.deviceId = deviceId if deviceId is not None else self.device["device_id"]
+
+	def set_proxy(self, proxy):
+		if type(proxy) == dict:self.proxies = proxy
+		elif type(proxy) == str:
+			self.proxies = {
+				"http": proxy,
+				"https": proxy
+			}
+		else:
+			raise WrongType(type(proxy))
 
 
 	def parse_headers(self, data = None, content_type = None, type: str = 'iphone', referer: str = None):
@@ -48,6 +57,7 @@ class Client(Callbacks, SocketHandler):
 
 	def upload_media(self, file: BinaryIO, fileType: str):
 
+		#NEED FIX
 		if fileType == "audio":
 			t = "audio/aac"
 		elif fileType == "image":
@@ -80,7 +90,7 @@ class Client(Callbacks, SocketHandler):
 			self.profile.sid = self.sid
 			if self.socket_enabled:
 				self.run_amino_socket()
-			return self.uid
+			return self.profile.userId
 
 		elif number:
 
@@ -103,7 +113,7 @@ class Client(Callbacks, SocketHandler):
 			self.profile.sid = self.sid
 			if self.socket_enabled:
 				self.run_amino_socket()
-			return self.uid
+			return self.profile.userId
 		elif sid:
 
 			uId = generator.sid_to_uid(sid)

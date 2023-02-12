@@ -22,8 +22,8 @@ from os import urandom
 from binascii import hexlify
 
 class LocalClient(client.Client):
-	def __init__(self, comId: str, profile: objects.UserProfile, deviceId: str = None):
-		client.Client.__init__(self, deviceId=deviceId)
+	def __init__(self, comId: str, profile: objects.UserProfile, deviceId: str = None, proxies: dict = None):
+		client.Client.__init__(self, deviceId=deviceId, proxies=proxies)
 		self.comId = comId
 		self.profile = profile
 		self.sid = profile.sid
@@ -56,7 +56,7 @@ class LocalClient(client.Client):
 
 
 	def send_message(self, chatId: str, message: str = None, messageType: int = 0, file: BinaryIO = None, fileType: str = None, replyTo: str = None, mentionUserIds: list = None, stickerId: str = None, embedId: str = None, embedType: int = None, embedLink: str = None, embedTitle: str = None, embedContent: str = None, embedImage: BinaryIO = None, linkSnippet: str = None, linkSnippetImage: BinaryIO = None):
-
+		print(self.proxies)
 		if message is not None and file is None:
 			message = message.replace("<@", "‎‏").replace("@>", "‬‭")
 
