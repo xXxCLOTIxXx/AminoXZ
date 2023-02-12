@@ -56,7 +56,6 @@ class LocalClient(client.Client):
 
 
 	def send_message(self, chatId: str, message: str = None, messageType: int = 0, file: BinaryIO = None, fileType: str = None, replyTo: str = None, mentionUserIds: list = None, stickerId: str = None, embedId: str = None, embedType: int = None, embedLink: str = None, embedTitle: str = None, embedContent: str = None, embedImage: BinaryIO = None, linkSnippet: str = None, linkSnippetImage: BinaryIO = None):
-		print(self.proxies)
 		if message is not None and file is None:
 			message = message.replace("<@", "‎‏").replace("@>", "‬‭")
 
