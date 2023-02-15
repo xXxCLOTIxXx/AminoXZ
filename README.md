@@ -18,7 +18,7 @@
 
 What's this? AminoXZ is a library for working with amino servers. It contains both web requests and requests disguised as an application.
 
-If you have any questions, you can ask them in our discord server (https://discord.gg/GtpUnsHHT4), and you can also join our telegram channel for the latest news (https://t.me/DxsarzUnion)
+If you have any questions, you can ask them in our discord server, and you can also join our telegram channel for the latest news
 
 
 Installation Methods:
