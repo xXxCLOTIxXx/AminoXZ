@@ -8,13 +8,13 @@
 </h1>
 
 
-<H1>#Документация на русском</H1>
+<H1><a href='https://teletype.in/@xsarz/S1l0owQJLuS'>Документация на русском</a></H1>
 
 <H1><a href='https://teletype.in/@xsarz/G57F7_R4Qtc'>Documentation in English</a></H1>
 
-# Join our discord server https://discord.gg/GtpUnsHHT4 !
+<H1><a href='https://discord.gg/GtpUnsHHT4'>Join our discord server</a></H1>
 
-# Join our telegram channel https://t.me/DxsarzUnion !
+<H1><a href='https://t.me/DxsarzUnion'>Join our telegram channel</a></H1>
 
 What's this? AminoXZ is a library for working with amino servers. It contains both web requests and requests disguised as an application.
 
