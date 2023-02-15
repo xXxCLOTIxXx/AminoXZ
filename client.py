@@ -1,4 +1,5 @@
 from time import time as timestamp
+from time import sleep
 import json
 
 from .lib.util.generator import Generator
@@ -55,9 +56,162 @@ class Client(Callbacks, SocketHandler):
 		else: raise exceptions.WrongType(fileType)
 
 
-	def upload_media(self, file: BinaryIO, fileType: str):
+	def join_voice_chat(self, comId: str, chatId: str, joinType: int = 1):
 
-		#NEED FIX
+
+		data = {
+			"o": {
+				"ndcId": int(comId),
+				"threadId": chatId,
+				"joinRole": joinType,
+				"id": "2154531"
+			},
+			"t": 112
+		}
+		data = json.dumps(data)
+		self.send(data)
+
+	def join_video_chat(self, comId: str, chatId: str, joinType: int = 1):
+
+		data = {
+			"o": {
+				"ndcId": int(comId),
+				"threadId": chatId,
+				"joinRole": joinType,
+				"channelType": 5,
+				"id": "2154531"
+			},
+			"t": 108
+		}
+		data = json.dumps(data)
+		self.send(data)
+
+	def join_video_chat_as_viewer(self, comId: str, chatId: str):
+		data = {
+			"o":
+				{
+					"ndcId": int(comId),
+					"threadId": chatId,
+					"joinRole": 2,
+					"id": "72446"
+				},
+			"t": 112
+		}
+		data = json.dumps(data)
+		self.send(data)
+
+	def run_vc(self, comId: str, chatId: str, joinType: str):
+		while self.active:
+			data = {
+				"o": {
+					"ndcId": comId,
+					"threadId": chatId,
+					"joinRole": joinType,
+					"id": "2154531"
+				},
+				"t": 112
+			}
+			data = json.dumps(data)
+			self.send(data)
+			sleep(1)
+
+	def start_vc(self, comId: str, chatId: str, joinType: int = 1):
+
+		data = {
+			"o": {
+				"ndcId": comId,
+				"threadId": chatId,
+				"joinRole": joinType,
+				"id": "2154531"
+			},
+			"t": 112
+		}
+		data = json.dumps(data)
+		self.send(data)
+
+		data = {
+			"o": {
+				"ndcId": comId,
+				"threadId": chatId,
+				"channelType": 1,
+				"id": "2154531"
+			},
+			"t": 108
+		}
+		data = json.dumps(data)
+		self.send(data)
+		self.active = True
+		threading.Thread(target=self.run_vc, args=[comId, chatId, joinType])
+
+	def end_vc(self, comId: str, chatId: str, joinType: int = 2):
+
+		self.active = False
+		data = {
+			"o": {
+				"ndcId": comId,
+				"threadId": chatId,
+				"joinRole": joinType,
+				"id": "2154531"
+				},
+			"t": 112
+		}
+		data = json.dumps(data)
+		self.send(data)
+
+	def start_video(self, comId: str, chatId: str, path: str, title: str, background: BinaryIO, duration: int):
+
+		data = {
+			"o": {
+				"ndcId": int(comId),
+				"threadId": chatId,
+				"joinRole": 1,
+				"id": "10335106"
+			},
+			"t": 112
+		}
+		self.send(data)
+		data = {
+			"o": {
+				"ndcId": int(comId),
+				"threadId": chatId,
+				"channelType": 5,
+				"id": "10335436"
+			},
+			"t": 108
+		}
+		self.send(data)
+		data = {
+			"o": {
+				"ndcId": int(comId),
+				"threadId": chatId,
+				"playlist": {
+					"currentItemIndex": 0,
+					"currentItemStatus": 1,
+					"items": [{
+						"author": None,
+						"duration": duration,
+						"isDone": False,
+						"mediaList": [[100, self.upload_media(background, "image"), None]],
+						"title": title,
+						"type": 1,
+						"url": f"file://{path}"
+					}]
+				},
+				"id": "3423239"
+			},
+			"t": 120
+		}
+		self.send(data)
+		sleep(2)
+		data["o"]["playlist"]["currentItemStatus"] = 2
+		data["o"]["playlist"]["items"][0]["isDone"] = True
+		self.send(data)
+
+
+
+
+	def upload_media(self, file: BinaryIO, fileType: str):
+		
 		if fileType == "audio":
 			t = "audio/aac"
 		elif fileType == "image":
@@ -65,8 +219,8 @@ class Client(Callbacks, SocketHandler):
 		else: raise exceptions.WrongType(fileType)
 
 		data = file.read()
-		response = self.session.post(f"{self.api}/g/s/media/upload", data=data, headers=headers.Headers(type=t, data=data, deviceId=self.device_id).headers, proxies=self.proxies, verify=self.certificatePath)
-		if response.status_code != 200: return exceptions.CheckException(json.loads(response.text))
+		response = self.session.post(f"{self.api}/g/s/media/upload", data=data, headers=self.parse_headers(data=data, content_type=t), proxies=self.proxies, verify=self.certificatePath)
+		if response.status_code != 200: return exceptions.checkExceptions(response.text)
 		else: return json.loads(response.text)["mediaValue"]
 
 	def login(self, password: str, email: str = None, number: str = None, sid: str = None, secret: str = None):

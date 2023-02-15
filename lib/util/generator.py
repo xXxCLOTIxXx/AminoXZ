@@ -37,13 +37,13 @@ class Generator:
 
 	def getDeviceId(self):
 		try:
-			with open("device.json", "r") as stream:
+			with open("Device.json", "r") as stream:
 				data = json.load(stream)
 		except (FileNotFoundError, json.decoder.JSONDecodeError):
 			device = self.generate_device_info()
-			with open("device.json", "w") as stream:
+			with open("Device.json", "w") as stream:
 				json.dump(device, stream, indent=4)
-			with open("device.json", "r") as stream:
+			with open("Device.json", "r") as stream:
 				data = json.load(stream)
 		return data
 
