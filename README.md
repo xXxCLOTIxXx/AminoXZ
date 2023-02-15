@@ -8,6 +8,10 @@
 </h1>
 
 
+#Документация на русском
+
+#<a href='https://teletype.in/@xsarz/G57F7_R4Qtc'>Documentation in English</a>
+
 # Join our discord server https://discord.gg/GtpUnsHHT4 !
 
 # Join our telegram channel https://t.me/DxsarzUnion !
