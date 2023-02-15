@@ -8,9 +8,9 @@
 </h1>
 
 
-#Документация на русском
+<H1>#Документация на русском</H1>
 
-#<a href='https://teletype.in/@xsarz/G57F7_R4Qtc'>Documentation in English</a>
+<H1><a href='https://teletype.in/@xsarz/G57F7_R4Qtc'>Documentation in English</a></H1>
 
 # Join our discord server https://discord.gg/GtpUnsHHT4 !
 
