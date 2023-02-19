@@ -6,6 +6,10 @@
 				<a href='https://aminoxz.readthedocs.io/en/latest/'><img src="https://pbs.twimg.com/profile_images/525686734760067072/OhsWgbsr_400x400.png" height="30px">
 				 Library Documentation</a>
 			</td>
+			<td>
+				<a href='https://pypi.org/project/AminoXZ/'><img src="https://raw.githubusercontent.com/github/explore/666de02829613e0244e9441b114edb85781e972c/topics/pip/pip.png" height="60px">
+				 Library in pypi</a>
+			</td>
 	</table>
 	<table align="center">
 		</tr>
@@ -30,7 +34,10 @@
 <h1 align="center">Login example</h1>
 
 ```python
+import AminoXZ
 
+client = AminoXZ.Client()
+client.login(email='email', password='password')
 ```
 
 </body>
