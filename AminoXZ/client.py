@@ -43,8 +43,8 @@ class Client(Callbacks, SocketHandler):
 				"http": proxy,
 				"https": proxy
 			}
-		else:
-			raise WrongType(type(proxy))
+		elif proxy == None:self.proxies = None
+		else:raise WrongType(type(proxy))
 
 
 	def parse_headers(self, data = None, content_type = None, type: str = 'iphone', referer: str = None):
@@ -439,3 +439,10 @@ class Client(Callbacks, SocketHandler):
 		response = self.session.get(f"{self.api}/g/s-x{comId}/community/info?withInfluencerList=1&withTopicList=true&influencerListOrderStrategy=fansCount", headers=self.parse_headers(), proxies=self.proxies, verify=self.certificatePath)
 		if response.status_code != 200: return exceptions.checkExceptions(response.text)
 		else: return objects.Community(json.loads(response.text)["community"]).Community
+
+
+	def get_user_info(self, userId: str):
+		
+		response = self.session.get(f"{self.api}/g/s/user-profile/{userId}", headers=self.parse_headers(), proxies=self.proxies, verify=self.certificatePath)
+		if response.status_code != 200: return exceptions.checkExceptions(response.text)
+		else: return objects.UserProfile(json.loads(response.text)["userProfile"]).UserProfile

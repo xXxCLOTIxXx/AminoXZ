@@ -35,7 +35,8 @@ class LocalClient(client.Client):
 				"t": 304,
 				"o": {"actions": ["Browsing"], "target":f"ndc://x{self.comId}/", "ndcId":self.comId,'id': str(randint(1, 1000000))},
 			})
-			self.send(data)
+			try:self.send(data)
+			except websocket._exceptions.WebSocketConnectionClosedException:pass
 			sleep(self.pingTime)
 
 
@@ -276,7 +277,6 @@ class LocalClient(client.Client):
 
 
 	def follow(self, userId: Union[str, list]):
-		#need fix :(
 
 		if isinstance(userId, str):
 			response = self.session.post(f"{self.api}/x{self.comId}/s/user-profile/{userId}/member", headers=self.parse_headers(), proxies=self.proxies, verify=self.certificatePath)
@@ -288,7 +288,6 @@ class LocalClient(client.Client):
 		else: return response.status_code
 
 	def unfollow(self, userId: str):
-		#need fix :(
 
 		response = self.session.delete(f"{self.api}/x{self.comId}/s/user-profile/{self.profile.userId}/joined/{userId}", headers=self.parse_headers(), proxies=self.proxies, verify=self.certificatePath)
 		if response.status_code != 200: return exceptions.checkExceptions(response.text)
@@ -453,3 +452,20 @@ class LocalClient(client.Client):
 		response = self.session.post(f"{self.api}/x{self.comId}/s/influencer/{userId}/subscribe", headers=self.parse_headers(data=data), data=data, proxies=self.proxies, verify=self.certificatePath)
 		if response.status_code != 200:return exceptions.checkExceptions(response.text)
 		else:return response.status_code
+
+
+	def get_blog_info(self, blogId: str = None, wikiId: str = None, quizId: str = None, fileId: str = None):
+		if blogId or quizId:
+			if quizId is not None: blogId = quizId
+			response = self.session.get(f"{self.api}/x{self.comId}/s/blog/{blogId}", headers=self.parse_headers(), proxies=self.proxies, verify=self.certificatePath)
+			if response.status_code != 200: return exceptions.checkExceptions(response.text)
+			else: return objects.GetBlogInfo(json.loads(response.text)).GetBlogInfo
+		elif wikiId:
+			response = self.session.get(f"{self.api}/x{self.comId}/s/item/{wikiId}", headers=self.parse_headers(), proxies=self.proxies, verify=self.certificatePath)
+			if response.status_code != 200: return exceptions.checkExceptions(response.text)
+			else: return objects.GetWikiInfo(json.loads(response.text)).GetWikiInfo
+		elif fileId:
+			response = self.session.get(f"{self.api}/x{self.comId}/s/shared-folder/files/{fileId}", headers=self.parse_headers(), proxies=self.proxies, verify=self.certificatePath)
+			if response.status_code != 200: return exceptions.checkExceptions(response.text)
+			else: return objects.SharedFolderFile(json.loads(response.text)["file"]).SharedFolderFile
+		else: raise exceptions.WrongType()
