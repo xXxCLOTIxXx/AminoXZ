@@ -13,14 +13,15 @@ import base64
 from typing import BinaryIO, Union
 from time import time as timestamp
 from threading import Thread
-from time import sleep
+from time import sleep, timezone
 from random import randint
-
-
+from json_minify import json_minify
 from uuid import UUID
 from os import urandom
 from binascii import hexlify
+from websocket import _exceptions as WSexceptions
 
+generator = Generator()
 class LocalClient(client.Client):
 	def __init__(self, comId: str, profile: objects.UserProfile, deviceId: str = None, proxies: dict = None):
 		client.Client.__init__(self, deviceId=deviceId, proxies=proxies)
@@ -35,9 +36,10 @@ class LocalClient(client.Client):
 				"t": 304,
 				"o": {"actions": ["Browsing"], "target":f"ndc://x{self.comId}/", "ndcId":self.comId,'id': str(randint(1, 1000000))},
 			})
-			try:self.send(data)
-			except websocket._exceptions.WebSocketConnectionClosedException:pass
-			sleep(self.pingTime)
+			try:
+				self.send(data)
+				sleep(self.pingTime)
+			except WSexceptions.WebSocketConnectionClosedException:pass
 
 
 	def Online(self):
@@ -469,3 +471,25 @@ class LocalClient(client.Client):
 			if response.status_code != 200: return exceptions.checkExceptions(response.text)
 			else: return objects.SharedFolderFile(json.loads(response.text)["file"]).SharedFolderFile
 		else: raise exceptions.WrongType()
+
+
+	def send_active_obj(self, startTime: int = None, endTime: int = None, optInAdsFlags: int = 2147483647, tz: int = generator.timezone(), timers: list = generator.timers(), timestamp: int = int(timestamp() * 1000)): 
+		data = {
+				"userActiveTimeChunkList":
+					[
+						{
+							"start": startTime,
+							"end": endTime
+						}
+					],
+				"timestamp":timestamp,
+				"optInAdsFlags": optInAdsFlags,
+				"timezone": tz
+				} 
+		if timers:
+			data["userActiveTimeChunkList"] = timers
+
+		data = json_minify(json.dumps(data))
+		response = self.session.post(f"{self.api}/x{self.comId}/s/community/stats/user-active-time", headers=self.parse_headers(data=data), data=data, proxies=self.proxies, verify=self.certificatePath) 
+		if response.status_code != 200: return exceptions.checkExceptions(response.text)
+		else: return response.status_code

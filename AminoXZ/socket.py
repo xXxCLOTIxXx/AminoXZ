@@ -15,7 +15,7 @@ class SocketHandler:
 		self.active = False
 		self.headers = None
 		self.socket = None
-		self.reconnectTime = 160
+		self.reconnectTime = 90
 		self.pingTime = 10
 		self.socket_thread = None
 		self.generator = Generator()

@@ -446,3 +446,16 @@ class Client(Callbacks, SocketHandler):
 		response = self.session.get(f"{self.api}/g/s/user-profile/{userId}", headers=self.parse_headers(), proxies=self.proxies, verify=self.certificatePath)
 		if response.status_code != 200: return exceptions.checkExceptions(response.text)
 		else: return objects.UserProfile(json.loads(response.text)["userProfile"]).UserProfile
+
+
+	def get_wallet_info(self):
+
+		response = self.session.get(f"{self.api}/g/s/wallet", headers=self.parse_headers(), proxies=self.proxies, verify=self.certificatePath)
+		if response.status_code != 200: return exceptions.checkExceptions(response.text)
+		else: return objects.WalletInfo(json.loads(response.text)["wallet"]).WalletInfo
+
+	def get_wallet_history(self, start: int = 0, size: int = 25):
+		
+		response = self.session.get(f"{self.api}/g/s/wallet/coin/history?start={start}&size={size}", headers=self.parse_headers(), proxies=self.proxies, verify=self.certificatePath)
+		if response.status_code != 200: return exceptions.checkExceptions(response.text)
+		else: return objects.WalletHistory(json.loads(response.text)["coinHistoryList"]).WalletHistory

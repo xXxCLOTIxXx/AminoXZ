@@ -187,6 +187,11 @@ class InvalidVerificationCode(Exception):
 		Exception.__init__(*args, **kwargs)
 
 
+class OnlyViewMode(Exception):
+	def __init__(*args, **kwargs):
+		Exception.__init__(*args, **kwargs)
+
+
 
 def checkExceptions(data = None, local: dict = None):
 	local_code = None
@@ -237,6 +242,7 @@ def checkExceptions(data = None, local: dict = None):
 	elif code == 802: raise InvalidLink(data)
 	elif code == 1611: raise InvitesDisabled(data)
 	elif code == 1602: raise ChatsLimit(data)
+	elif code == 1663: raise OnlyViewMode(data)
 	elif code == 3102: raise InvalidVerificationCode(data)
 
 	elif local_code == 1: raise IncorrectType(local['text'])
