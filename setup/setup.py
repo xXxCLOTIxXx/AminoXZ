@@ -4,7 +4,7 @@ with open("README.md", "r") as file:
     long_description = file.read()
 
 link = 'https://github.com/xXxCLOTIxXx/AminoXZ/archive/refs/heads/main.zip'
-ver = '1.1.9'
+ver = '1.1.9.2'
 
 setup(
     name = "AminoXZ",
