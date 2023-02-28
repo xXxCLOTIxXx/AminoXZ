@@ -18,7 +18,7 @@ __title__ = 'AminoXZ'
 __author__ = 'Xsarz'
 __license__ = 'MIT'
 __copyright__ = 'Copyright 2022-2023 Xsarz'
-__version__ = '1.1.9'
+__version__ = '1.1.9.2'
 __newest__ = loads(get("https://pypi.org/pypi/aminoxz/json").text)["info"]["version"]
 
 
