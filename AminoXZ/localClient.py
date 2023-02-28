@@ -38,8 +38,13 @@ class LocalClient(client.Client):
 			})
 			try:
 				self.send(data)
-				sleep(self.pingTime)
-			except WSexceptions.WebSocketConnectionClosedException:pass
+			except WSexceptions.WebSocketConnectionClosedException:
+				sleep(1.5)
+				continue
+			except Exception as e:
+				if sock_debug:
+					print('[socket][_online_loop][error] ', e)
+			sleep(self.pingTime)
 
 
 	def Online(self):

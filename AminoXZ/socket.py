@@ -16,7 +16,7 @@ class SocketHandler:
 		self.headers = None
 		self.socket = None
 		self.reconnectTime = 90
-		self.pingTime = 10
+		self.pingTime = 20
 		self.socket_thread = None
 		self.generator = Generator()
 
@@ -75,7 +75,7 @@ class SocketHandler:
 			self.socket = WebSocketApp(
 				f"{self.socket_url}/?signbody={final.replace('|', '%7C')}",
 				on_message = self.handle_message,
-				header = self.headers
+				header = self.headers,
 			)
 
 			self.active = True
@@ -89,8 +89,9 @@ class SocketHandler:
 			if self.debug is True:
 				print(f"[socket][start] Socket Started")
 		except Exception as e:
-			print(e)
-
+			if self.debug:
+				print(f"[socket][start] Error while starting Socket : {e}")
+				
 	def close(self):
 		if self.debug is True:
 			print(f"[socket][close] Closing Socket")

@@ -25,10 +25,10 @@ class Client(Callbacks, SocketHandler):
 		self.certificatePath = certificatePath
 
 		self.device = generator.getDeviceId()
-
+		self.sock_debug = sock_debug
 		self.socket_enabled = socket_enabled
 		self.autoDevice = autoDevice
-		SocketHandler.__init__(self, self, sock_trace=sock_trace, debug=sock_debug)
+		SocketHandler.__init__(self, self, sock_trace=sock_trace, debug=self.sock_debug)
 		Callbacks.__init__(self, self)
 
 		self.sid = None
