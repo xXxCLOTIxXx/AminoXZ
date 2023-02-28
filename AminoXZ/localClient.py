@@ -42,7 +42,7 @@ class LocalClient(client.Client):
 				sleep(1.5)
 				continue
 			except Exception as e:
-				if sock_debug:
+				if self.sock_debug:
 					print('[socket][_online_loop][error] ', e)
 			sleep(self.pingTime)
 
